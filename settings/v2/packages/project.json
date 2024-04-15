@@ -1,0 +1,44 @@
+{
+  "__version__": "1.0.6",
+  "physics": {
+    "collisionGroups": [
+      {
+        "index": 1,
+        "name": "PLAYER"
+      },
+      {
+        "index": 2,
+        "name": "MAP"
+      },
+      {
+        "index": 3,
+        "name": "NPC"
+      },
+      {
+        "index": 4,
+        "name": "Rope"
+      },
+      {
+        "index": 5,
+        "name": "CRAWL_POINT"
+      },
+      {
+        "index": 6,
+        "name": "PLAYER_POINT"
+      }
+    ],
+    "collisionMatrix": {
+      "0": 0,
+      "1": 44,
+      "2": 10,
+      "3": 14,
+      "4": 0,
+      "5": 66,
+      "6": 32
+    },
+    "gravity": {
+      "z": 0,
+      "y": -10
+    }
+  }
+}
