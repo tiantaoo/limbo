@@ -1,4 +1,4 @@
-import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, EventKeyboard, EventTarget, FixedJoint2D, Input, Joint2D, KeyCode, Node, RelativeJoint2D, RigidBody2D, Vec2, Vec3, _decorator, director, dragonBones, input, tween, v2 } from 'cc';
+import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, EventKeyboard, EventTarget, FixedJoint2D, Input, Joint2D, KeyCode, Node, RelativeJoint2D, RigidBody2D, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, tween, v2 } from 'cc';
 import { RopeNode } from './Rope';
 const { ccclass, property } = _decorator;
 const eventTarget = new EventTarget();
@@ -29,12 +29,14 @@ enum AnimationType {
     NONE = 'none'
 }
 
-@ccclass('Player')
-export class Player extends Component {
+@ccclass('Body')
+export class Body extends Component {
     // 碰撞盒子
     collider2D: BoxCollider2D;
     @property({ type: Node })
     crawl: Node;
+    @property({ type: Node })
+    center: Node;
     crawl2D: CircleCollider2D
     // 刚体
     rig2D: RigidBody2D;
@@ -53,7 +55,7 @@ export class Player extends Component {
     // 跳跃力
     jumpF: number = 1100;
     // 角色缩放
-    scale: number = 1
+    scale: number = 0.15
     // 角色运动状态,默认放松
     playState: PlayState = PlayState.RELAX
     // 角色正在靠近的需要处理的节点
@@ -73,12 +75,13 @@ export class Player extends Component {
         this.collider2D = this.node.getComponent(BoxCollider2D)
         this.crawl2D = this.crawl.getComponent(CircleCollider2D)
         this.rig2D = this.node.getComponent(RigidBody2D)
-        this.armatureDisplay = this.node.getChildByName('Body').getComponent(dragonBones.ArmatureDisplay)
+        this.armatureDisplay = this.node.getComponent(dragonBones.ArmatureDisplay)
         this.armature = this.armatureDisplay.armature()
         this.animation = this.armature.animation
 
     }
     start() {
+        
         this.playAnima()
         // 监听动画执行完毕事件
         this.armatureDisplay.addEventListener(dragonBones.EventObject.COMPLETE, this.handleDragonBonesComplete, this)
@@ -94,38 +97,19 @@ export class Player extends Component {
         if ([AnimationType.WALK, AnimationType.PUSH, AnimationType.RELAX, AnimationType.JUMP].includes(name)) {
             this.playState = PlayState.RELAX
             this.playAnima()
-            if (this.node.getChildByName('R1').active === false) {
-                this.node.getChildByName('R1').active = true
-            }
+            // if (this.node.getChildByName('R1').active === false) {
+            //     this.node.getChildByName('R1').active = true
+            // }
         } else if (name === AnimationType.CRAWL1) {
             this.isT = false
             this.node.getComponent(RelativeJoint2D).destroy()
-            this.pointB = this.crawl.getWorldPosition()
-            const x = this.pointB.x - this.pointA.x
-            const y = this.pointB.y - this.pointA.y
-            console.log(x,y)
-            this.node.setPosition(this.node.position.x+20,this.node.position.y+40)
-            // tween(this.node.position).to(0.2, new Vec3(this.node.position.x + 20, this.node.position.y + 40, 0),    // 这里以node的位置信息坐标缓动的目标 
-            // {
-            //     onUpdate: (target: Vec3, ratio: number) => {
-            //         this.node.position = target;
-            //     },
-            //     onComplete: () => {
-            //         // this.collider2D.density = 50
-            //         // this.collider2D.enabled = true
-            //         // this.isT = false
-            //         // this.playState = PlayState.RELAX
-            //         // this.playAnima()
-            //     }
-            // }).start();
-            // const joint = this.node.getComponent(RelativeJoint2D)
-            // joint.enabled = false
-            // joint.linearOffset = v2(40,-50)
-            // joint.maxForce = 5000
-            // joint.maxTorque = 1000
-            // joint.enabled = true
+            const bodyPos = this.node.getWorldPosition()
+            const centerPos = this.node.getComponent(UITransform).convertToWorldSpaceAR(this.center.position)
+            const x = centerPos.x - bodyPos.x
+            const y = centerPos.y - bodyPos.y
+            this.node.setPosition(this.node.position.x+x,this.node.position.y+y)
             this.playState = PlayState.RELAX
-            this.playAnima()
+            this.playAnima(AnimationType.RELAX)
 
         } else if (name === AnimationType.HURT) {
             director.emit(AnimationType.HURT)
@@ -220,10 +204,10 @@ export class Player extends Component {
                 // 拉绳中
                 if (this.playState === PlayState.PULL) {
                     // 移除手关节
-                    const R1 = this.node.getChildByName('R1')
-                    this.removeJoint(R1, 'hands')
-                    // 禁用R1节点，防止在跳下的过程中再次连接绳子
-                    R1.active = false
+                    // const R1 = this.node.getChildByName('R1')
+                    // this.removeJoint(R1, 'hands')
+                    // // 禁用R1节点，防止在跳下的过程中再次连接绳子
+                    // R1.active = false
                 }
                 this.playState = PlayState.JUMP
                 this.playAnima()
@@ -288,18 +272,12 @@ export class Player extends Component {
      */
     crawlBegin = (self: Collider2D, other: Collider2D, contact) => {
         if (other.node.name === 'Crawl' && !this.isT) {
-            console.log('抓住')
             this.stopAnima(AnimationType.JUMP)
             this.isT = true
-            this.collider2D.enabled = false
-            this.rig2D.linearVelocity = v2(this.rig2D.linearVelocity.x, 0)
+            // this.rig2D.linearVelocity = v2(this.rig2D.linearVelocity.x, 0)
             this.playState = PlayState.CRAWL1
             this.playAnima()
             this.pointA = self.node.getWorldPosition()
-            // 计算坐标差
-            // const x = other.node.getWorldPosition().x - self.node.getWorldPosition().x
-            // const y = other.node.getWorldPosition().y - self.node.getWorldPosition().y
-            // this.armature.getBone('ik_left_hand').offset.x = 
             const joint = this.node.addComponent(RelativeJoint2D)
             joint.enabled = false
             joint.connectedBody = other.node.getComponent(RigidBody2D)
@@ -312,7 +290,6 @@ export class Player extends Component {
             joint.anchor = v2(0, 0)
             joint.connectedAnchor = v2(0, -10)
             joint.enabled = true
-
         }
     }
     /**
@@ -321,7 +298,7 @@ export class Player extends Component {
      * @param other 
      */
     beginContact = (self: Collider2D, other: Collider2D, contact) => {
-        // console.log(other.node.name)
+        console.log(other.node.name)
         switch (other.node.name) {
             // 碰撞石头
             case 'Ston1':
@@ -349,6 +326,7 @@ export class Player extends Component {
                     // 角色R2节点没有绑定时、可以绑定
                     if (!self.node.getChildByName('R2').getComponents(Joint2D).find(item => item.name === 'hands')) {
                         this.nearNodes.push(other.node)
+                        console.log('R2')
                     }
                     // 地刺
                 } else if (other.tag === 1) {
@@ -490,9 +468,11 @@ export class Player extends Component {
     update(deltaTime: number) {
         if (this.isT) {
             // this.rig2D.applyForceToCenter(v2(0, this.rig2D.getMass()), true)
-            this.node.setWorldPosition(this.node.getChildByName('Body').getWorldPosition())
+            // this.node.setWorldPosition(this.node.getChildByName('Body').getWorldPosition())
         }
     }
 }
+
+
 
 
