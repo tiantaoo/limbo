@@ -12,6 +12,8 @@ export class Rope extends Component {
     @property({type:Prefab,tooltip:'节点预制体'})
     ropePrefab:Prefab
 
+    pointA:Node
+
     start() {
 
         this.createRope()
@@ -34,10 +36,16 @@ export class Rope extends Component {
             }
             this.node.addChild(ropeNode)
         }
+        // this.pointA = this.node.getChildByName('Rope')
+        // console.log(this.node.getChildByName('Rope').getWorldPosition(),
+        // this.node.getPosition())
     }
 
     update(deltaTime: number) {
-        
+        // console.log(this.pointA.getWorldPosition().subtract(this.node.getPosition()).length())
+        // if(this.pointA.getWorldPosition().subtract(this.node.getPosition()).length()>10){
+        //     this.pointA.setWorldPosition(v3(this.pointA.getWorldPosition().x,this.node.getPosition().y+10))
+        // }
     }
 }
 

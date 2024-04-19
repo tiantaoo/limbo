@@ -49,8 +49,8 @@
       "__type__": "cc.Quat",
       "x": 0,
       "y": 0,
-      "z": -0.02181488503456112,
-      "w": 0.9997620270799091
+      "z": 0,
+      "w": 1
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -64,7 +64,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": -2.5
+      "z": 0
     },
     "_id": ""
   },
@@ -159,7 +159,7 @@
     "_group": 8,
     "_type": 2,
     "_allowSleep": false,
-    "_gravityScale": 1,
+    "_gravityScale": 2,
     "_linearDamping": 0.7,
     "_angularDamping": 0,
     "_linearVelocity": {
@@ -189,19 +189,19 @@
     },
     "tag": 1,
     "_group": 8,
-    "_density": 500,
+    "_density": 10000,
     "_sensor": false,
     "_friction": 0.6,
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -1.9,
-      "y": -5.4
+      "x": 0,
+      "y": -7.8
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 70.5,
-      "height": 4.4
+      "width": 76,
+      "height": 1.1
     },
     "_id": ""
   },
@@ -223,19 +223,19 @@
     },
     "tag": 0,
     "_group": 8,
-    "_density": 1,
+    "_density": 0,
     "_sensor": true,
     "_friction": 0.2,
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -53.1,
-      "y": -7.5
+      "x": -58.4,
+      "y": -1.9
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 30.9,
-      "height": 5.5
+      "width": 39,
+      "height": 1
     },
     "_id": ""
   },

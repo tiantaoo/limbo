@@ -1,6 +1,6 @@
 import { _decorator, BoxCollider2D, Component, director, EPhysics2DDrawFlags, find, PhysicsSystem2D, PolygonCollider2D, size, TiledMap, v2 } from 'cc';
 const { ccclass, property } = _decorator;
-PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Joint
+// PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape
 @ccclass('Map')
 export class Map extends Component {
     onLoad() {
@@ -23,12 +23,17 @@ export class Map extends Component {
             _box2d.offset = v2(offsetX, object.offset.y - object.height / 2)
         } else if (object.type === 2) { // 多边形
             const _point = collParent.addComponent(PolygonCollider2D)
-            _point.friction = 0.5
+            _point.friction = 0.9
             _point.offset = v2(object.x, object.y)
             for (let i = 0; i < object.points.length; i++) {
                 _point.points[i] = v2(object.points[i].x, object.points[i].y)
             }
+            console.log(object)
         }
+    }
+    switchDraw(e,str:EPhysics2DDrawFlags){
+        console.log(str)
+        PhysicsSystem2D.instance.debugDrawFlags = Number(str)
     }
 }
 

@@ -1,4 +1,4 @@
-import { Camera, Component, Node, _decorator, director, math } from 'cc';
+import { Camera, CameraComponent, Color, Component, Node, Sprite, Vec3, _decorator, director, math, tween, v3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('CameraCtrl')
@@ -14,41 +14,39 @@ export class CameraCtrl extends Component {
     // 地图尺寸
     mapSize: math.Size;
 
-    lastPlayerY: number = 0;
+    lastCameraPos: Vec3
     scoreNode: Node;
 
     onLoad() {
-        // this.camera.orthoHeight = 500
-        const Ca = this.camera.getComponent(Camera)
-        console.log(Ca.clearColor)
-        director.once('hurt',() => {
-            Ca.clearColor.set(255,255,255)
-            console.log('结束',Ca.clearColor)
+        const Ca = this.camera.getComponent(CameraComponent)
+        this.lastCameraPos = this.node.getPosition()
+        director.once('hurt', () => {
+            const mask = this.node.getChildByPath('UI/Mask').getComponent(Sprite)
+            const col = new Color(0, 0, 0, 255)
+            tween(mask.color)
+                .to(1, col, {
+                    onUpdate: function (target: Color) {
+                        mask.color.set(target)
+                    }
+                    , onComplete() {
+                        director.loadScene(director.getScene().name)
+                    }
+                }).start();
         })
     }
     update(deltaTime: number) {
         const { x, y } = this.player.position;
-        this.updateCameraY(x);
-            // 玩家在上升过程中，相机要一直跟随
-            // this.updateCameraX(x);
-            // if (x > this.lastPlayerY) {
-            //     this.updateCameraY(x);
-            //     // this.updateScore(y);
-            //     // this.updateLevel();
-            // }
+        // 相机缓慢跟随主角移动
+        this.updateCamera(v3(this.lastCameraPos.x + (x - this.lastCameraPos.x) * deltaTime * 2, y));
+    }
+    updateCamera(pos: Vec3) {
+        this.lastCameraPos = pos
+        if (pos.x < 0) {
+            pos.x = 0
+        }
+        this.camera.node.setPosition(pos.x, this.camera.node.position.y)
+    }
 
-    }
-    updateLevel() {
-
-    }
-    updateCameraX(posX: number) {
-        this.camera.node.setPosition(posX, this.camera.node.position.y)
-    }
-    updateCameraY(posY: number) {
-        // this.lastPlayerY = posY;
-        this.camera.node.setPosition(posY, this.camera.node.position.y)
-    }
-    
 }
 
 
