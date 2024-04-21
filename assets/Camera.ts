@@ -28,14 +28,17 @@ export class CameraCtrl extends Component {
                     onUpdate: function (target: Color) {
                         mask.color.set(target)
                     }
-                    , onComplete() {
-                        director.loadScene(director.getScene().name)
+                    , onComplete:() => {
+                        director.loadScene('Level2')
                     }
                 }).start();
         })
     }
     update(deltaTime: number) {
         const { x, y } = this.player.position;
+        if(y<-640){
+            
+        }
         // 相机缓慢跟随主角移动
         this.updateCamera(v3(this.lastCameraPos.x + (x - this.lastCameraPos.x) * deltaTime * 2, y));
     }

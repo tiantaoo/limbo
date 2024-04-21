@@ -1,4 +1,4 @@
-import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, DistanceJoint2D, EventKeyboard, EventTarget, FixedJoint2D, Input, Joint2D, KeyCode, Node, RelativeJoint2D, RigidBody2D, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, v2, v3 } from 'cc';
+import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, DistanceJoint2D, ERigidBody2DType, EventKeyboard, EventTarget, FixedJoint2D, Input, Joint2D, KeyCode, Node, RelativeJoint2D, RigidBody2D, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, v2, v3 } from 'cc';
 import { RopeNode } from './Rope';
 const { ccclass, property } = _decorator;
 const eventTarget = new EventTarget();
@@ -18,7 +18,7 @@ enum PlayState {
 // 动画类型
 enum AnimationType {
     RELAX = 'relax',// 放松
-    WALK = 'walk', // 走
+    WALK = 'run', // 走
     PUSH = 'push', // 推
     DRAG = 'drag', // 拖
     PULL = 'crawl', // 拉
@@ -105,16 +105,17 @@ export class PLayer extends Component {
             this.playState = PlayState.RELAX
             this.scheduleOnce(() => {
                 // 0.5S 后状态还不变，就执行休息动画
-                if(this.playState === PlayState.RELAX){
+                if (this.playState === PlayState.RELAX) {
                     this.playAnima()
                 }
-            },0.5)
-            
+            }, 0.5)
+
             if (this.node.getChildByName('R1').active === false) {
                 this.node.getChildByName('R1').active = true
             }
         } else if (name === AnimationType.CRAWL1) {
             this.node.getComponent(RelativeJoint2D).destroy()
+            eventTarget.emit('crawl_complete')
             this.setIKOffset(v3())
             const bodyPos = this.node.getWorldPosition()
             const centerPos = this.node.getComponent(UITransform).convertToWorldSpaceAR(this.boneCenter.position)
@@ -147,11 +148,11 @@ export class PLayer extends Component {
      * @returns 
      */
     handDown = (e: EventKeyboard) => {
-        if(this.playState === PlayState.HURT) return
+        if (this.playState === PlayState.HURT) return
         // 左右键
         if ([KeyCode.ARROW_RIGHT, KeyCode.ARROW_LEFT].includes(e.keyCode)) {
             // 角色在休息、走的状态，需要转身
-            if ([PlayState.RELAX, PlayState.WALK].includes(this.playState)) {
+            if ([PlayState.RELAX, PlayState.WALK, PlayState.JUMP].includes(this.playState)) {
                 this.node.setScale((e.keyCode === KeyCode.ARROW_LEFT ? -1 : 1) * this.scale, this.node.scale.y, 1)
                 this.collider2D.apply()
             }
@@ -168,13 +169,13 @@ export class PLayer extends Component {
                 const preNode: RopeNode = this.curJoinNode.parent.children.find(item => item['no'] === (curIndex + dir))
                 const joint = R1.getComponents(Joint2D).find(item => item.name === 'hands')
                 joint.enabled = false;
-                if(preNode){
+                if (preNode) {
                     joint.connectedBody = preNode.getComponent(RigidBody2D)
                     joint.enabled = true;
                     this.curJoinNode = preNode
                     // 状态不切换，直接播放爬绳子的动画
                     this.playAnima()
-                }else{
+                } else {
                     this.removeJoint(R1, 'hands')
                     // 禁用R1节点，防止在跳下的过程中再次连接绳子
                     R1.active = false
@@ -225,7 +226,27 @@ export class PLayer extends Component {
                     joint.connectedBody = _node.getComponent(RigidBody2D)
                     joint.collideConnected = true
                     joint.anchor = v2(0, 0)
-                    joint.connectedAnchor = v2(-50, -10)
+                    // 得到扑兽夹的一半宽度，手要刚好接触到这一端点
+                    const _box = _node.getComponents(BoxCollider2D).find(item => item.tag === 1)
+                    const isPlayerToNode: boolean = this.node.worldPosition.x < _node.worldPosition.x
+                     // 方向是:人->捕兽夹
+                    if (isPlayerToNode) {
+                        // 人朝左，需要转向
+                        if (this.node.scale.x < 0) {
+                            console.log('需要转向')
+                            this.node.setScale(this.scale, this.node.scale.y, 1)
+                            this.collider2D.apply()
+                        }
+                    // 方向是:捕兽夹->人
+                    } else {
+                        // 人朝右，需要转向
+                        if (this.node.scale.x > 0) {
+                            this.node.setScale(-1 * this.scale, this.node.scale.y, 1)
+                            this.collider2D.apply()
+                        }
+                    }
+                    const dir = isPlayerToNode ? -1 : 1
+                    joint.connectedAnchor = v2(dir * (_box.size.width / 2 + 5), -10)
                     joint.maxLength = 1
                     joint.autoCalcDistance = false
                     this.scheduleOnce(() => {
@@ -242,7 +263,7 @@ export class PLayer extends Component {
      * @param e 
      */
     handPress = (e: EventKeyboard) => {
-        if(this.playState === PlayState.HURT) return
+        if (this.playState === PlayState.HURT) return
         // 长按左右键，移动玩家
         if ([KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT].includes(e.keyCode)) {
             this.move(e.keyCode)
@@ -253,7 +274,7 @@ export class PLayer extends Component {
      * @param e 
      */
     handUp = (e: EventKeyboard) => {
-        if(this.playState === PlayState.HURT) return
+        if (this.playState === PlayState.HURT) return
         // 停止行走后，马上切换休息动画
         if ([KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT].includes(e.keyCode) && this.playState === PlayState.WALK) {
             this.playState = PlayState.RELAX
@@ -272,7 +293,6 @@ export class PLayer extends Component {
         }[dirCode]
         // 横向力，方向*力
         let XF: number = FFlag * this.wakeV;
-        this.rig2D.linearVelocity = v2(XF, this.rig2D.linearVelocity.y)
         // 动画状态切换
         // 角色如果正在休息或在走，切换 走 状态，执行 走 动画
         if ([PlayState.RELAX, PlayState.WALK].includes(this.playState)) {
@@ -281,10 +301,12 @@ export class PLayer extends Component {
             // 角色如果正在推或拖，执行 相应 动画，不切换状态
         } else if ([PlayState.PUSH, PlayState.DRAG].includes(this.playState)) {
             this.playAnima()
+            XF = XF / 2
             // 角色如果正在跳或拉，不处理，因为这两种状态不需要持续播放动画
         } else {
 
         }
+        this.rig2D.linearVelocity = v2(XF, this.rig2D.linearVelocity.y)
     }
     /**
      * 挂点碰撞检测
@@ -295,6 +317,14 @@ export class PLayer extends Component {
     crawlBegin = (self: Collider2D, other: Collider2D, contact) => {
         if (other.node.name === 'Crawl' && this.playState !== PlayState.CRAWL1) {
             // 添加关节，将主角固定在原地
+            this.scheduleOnce(() => { 
+                const otype = other.node.getComponent(RigidBody2D).type
+                other.node.getComponent(RigidBody2D).type = ERigidBody2DType.Kinematic
+                eventTarget.once('crawl_complete',() => {
+                    other.node.getComponent(RigidBody2D).type = otype
+                })
+            })
+            // console.log(other.node.getComponent(RigidBody2D).type)
             const joint = this.node.addComponent(RelativeJoint2D)
             joint.enabled = false
             joint.connectedBody = other.node.getComponent(RigidBody2D)
@@ -317,7 +347,7 @@ export class PLayer extends Component {
             const pos = self.node.getPosition()
             const offset_x = x - pos.x;
             const offset_y = y - pos.y;
-            this.setIKOffset(v3(offset_x-20, offset_y-60))
+            this.setIKOffset(v3(offset_x, offset_y))
         } else if (other.node.name === 'Rope' && this.playState !== PlayState.PULL) {
         }
     }
@@ -327,6 +357,14 @@ export class PLayer extends Component {
      * @param other 
      */
     beginContact = (self: Collider2D, other: Collider2D, contact) => {
+       if(this.rig2D.getLinearVelocityFromWorldPoint(v2(0,0),this.node.worldPosition).y<-700){
+        // 受伤
+        this.playState = PlayState.HURT
+        this.playAnima()
+        this.rig2D.linearVelocity = v2(0, 0)
+        return
+       }
+       console.log(this.rig2D.getLinearVelocityFromWorldPoint(v2(0,0),this.node.worldPosition).y)
         switch (other.node.name) {
             // 碰撞石头
             case 'Ston1':
@@ -361,7 +399,7 @@ export class PLayer extends Component {
                     // 受伤
                     this.playState = PlayState.HURT
                     this.playAnima()
-                    this.rig2D.linearVelocity = v2(0,0)
+                    this.rig2D.linearVelocity = v2(0, 0)
                 }
                 break;
             default:
@@ -378,10 +416,10 @@ export class PLayer extends Component {
         if (other.node.name === 'Ston1') {
             this.playState = PlayState.RELAX
             this.scheduleOnce(() => {
-                if(this.playState === PlayState.RELAX){
+                if (this.playState === PlayState.RELAX) {
                     this.playAnima()
                 }
-            },0.5)
+            }, 0.5)
         } else if (other.node.name === 'Ju') {
             eventTarget.off('pick')
             if (other.tag === 0) {
@@ -421,7 +459,7 @@ export class PLayer extends Component {
         // 角色的关节连接到绳子刚体上
         joint.connectedBody = target.getComponent(RigidBody2D);
         joint.connectedAnchor = tagetAnchor
-        joint.anchor = v2(0,0)
+        joint.anchor = v2(0, 0)
         joint.enabled = true;
         this.curJoinNode = target
     }
@@ -448,7 +486,7 @@ export class PLayer extends Component {
         // 如果当前需要执行的动画，正在播放，不执行
         if (this.animation.isPlaying && this.animation.lastAnimationName === AnimationType[PlayState[this.playState]]) return;
         let temp: dragonBones.AnimationState;
-        let fadeInT:number = 0;
+        let fadeInT: number = 0;
         switch (this.playState) {
             case PlayState.RELAX:
                 this.animation.fadeIn(AnimationType.RELAX, 0.2, 0) // 循环执行
@@ -456,7 +494,7 @@ export class PLayer extends Component {
             case PlayState.WALK:
                 fadeInT = this.animation.lastAnimationName === AnimationType.WALK ? 0 : 0.2;
                 temp = this.animation.fadeIn(AnimationType.WALK, fadeInT, 1) // 执行一次
-                temp.timeScale = 2.5
+                temp.timeScale = 1.2
                 break;
             case PlayState.DRAG:
                 if (this.animation.lastAnimationName !== AnimationType.DRAG) {
@@ -467,7 +505,7 @@ export class PLayer extends Component {
                 break;
             case PlayState.JUMP:
                 temp = this.animation.play(AnimationType.JUMP, 1)
-                temp.timeScale = 1.2
+                temp.timeScale = 1.5
                 break;
             case PlayState.CRAWL1:
                 this.animation.fadeIn(AnimationType.CRAWL1, 0.2, 1)
@@ -499,7 +537,13 @@ export class PLayer extends Component {
         this.collider2D.off(Contact2DType.END_CONTACT, this.endContact, false)
     }
     update(deltaTime: number) {
-
+        const { x, y } = this.node.getPosition()
+        if (y < -640 && this.playState !== PlayState.HURT) {
+            console.log(y)
+            this.playState = PlayState.HURT
+            director.emit(AnimationType.HURT)
+            this.destroy()
+        }
     }
 }
 
