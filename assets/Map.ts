@@ -1,6 +1,6 @@
 import { _decorator, BoxCollider2D, Collider2D, Component, Contact2DType, director, EPhysics2DDrawFlags, find, PhysicsSystem2D, PolygonCollider2D, RigidBody2D, size, TiledMap, v2 } from 'cc';
 const { ccclass, property } = _decorator;
-PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Joint
+// PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape | EPhysics2DDrawFlags.Joint
 @ccclass('Map')
 export class Map extends Component {
     gravityScales:any = {
