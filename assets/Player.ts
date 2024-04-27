@@ -69,9 +69,9 @@ export class PLayer extends Component {
     // 行走速度
     wakeV: number = 6
     // 跳跃力
-    jumpF: number = 1200;
+    jumpF: number = 600;
     // 角色缩放
-    scale: number = 0.15
+    scale: number = 0.1
     // 角色运动状态,默认放松
     playState: PlayState = PlayState.RELAX
     // 角色正在靠近的需要处理的节点
@@ -109,9 +109,9 @@ export class PLayer extends Component {
     }
     test1() {
         console.log('添加刚体')
-        this.scheduleOnce(() => {
-            this.addBody()
-        })
+        // this.scheduleOnce(() => {
+        //     this.addBody()
+        // })
     }
     test2() {
         this.scheduleOnce(() => {
@@ -151,10 +151,11 @@ export class PLayer extends Component {
             if (this.node.getChildByName('R1').active === false) {
                 this.node.getChildByName('R1').active = true
             }
+            // 攀爬完成
         } else if (name === AnimationType.CRAWL1) {
+            this.setIKOffset(v3())
             this.node.getComponent(RelativeJoint2D).destroy()
             eventTarget.emit('crawl_complete')
-            this.setIKOffset(v3())
             const bodyPos = this.node.getWorldPosition()
             const centerPos = this.node.getComponent(UITransform).convertToWorldSpaceAR(this.boneCenter.position)
             const x = centerPos.x - bodyPos.x
@@ -179,7 +180,9 @@ export class PLayer extends Component {
         ik_right.offset.y = pos.y
         center.offset.x = pos.x
         center.offset.y = pos.y
-        this.armature.invalidUpdate()
+        ik_left.invalidUpdate()
+        ik_right.invalidUpdate()
+        center.invalidUpdate()
     }
     /**
      * 按键按下
@@ -247,7 +250,7 @@ export class PLayer extends Component {
                 this.playAnima()
                 this.scheduleOnce(() => {
                     this.rig2D.applyLinearImpulseToCenter(v2(this.node.scale.x * this.wakeV, this.jumpF), true)
-                }, 0.25)
+                }, 0.42)
             }
             // 操作键
         } else if (e.keyCode === KeyCode.ALT_LEFT) {
@@ -361,9 +364,9 @@ export class PLayer extends Component {
                 other.node.getComponent(RigidBody2D).type = ERigidBody2DType.Kinematic
                 eventTarget.once('crawl_complete', () => {
                     other.node.getComponent(RigidBody2D).type = otype
+                    this.node.getComponent(RelativeJoint2D)?.destroy()
                 })
             })
-            // console.log(other.node.getComponent(RigidBody2D).type)
             const joint = this.node.addComponent(RelativeJoint2D)
             joint.enabled = false
             joint.connectedBody = other.node.getComponent(RigidBody2D)
@@ -542,8 +545,8 @@ export class PLayer extends Component {
                 }
                 break;
             case PlayState.JUMP:
-                temp = this.animation.play(AnimationType.JUMP, 1)
-                temp.timeScale = 1.5
+                temp = this.animation.fadeIn(AnimationType.JUMP, 0,1)
+                temp.timeScale = 1.2
                 break;
             case PlayState.CRAWL1:
                 this.animation.fadeIn(AnimationType.CRAWL1, 0.2, 1)
@@ -682,6 +685,7 @@ export class PLayer extends Component {
     idie = () => {
         this.animation.stop()
         this.playState = PlayState.HURT
+        this.node.removeChild(this.node.getChildByName('R1'))
         this.scheduleOnce(() => {
             this.addBody()
             this.addJoint()
