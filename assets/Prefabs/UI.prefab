@@ -68,7 +68,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Button",
+    "_name": "重新加载",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -96,8 +96,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -456.939,
-      "y": 170.81800000000004,
+      "x": -109.228,
+      "y": 273.664,
       "z": 0
     },
     "_lrot": {
@@ -218,12 +218,12 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 202,
-      "g": 192,
-      "b": 192,
+      "r": 250,
+      "g": 250,
+      "b": 250,
       "a": 255
     },
-    "_string": "none",
+    "_string": "重新加载",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -429,7 +429,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Button-001",
+    "_name": "同步刚体",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -457,8 +457,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -340.111,
-      "y": 170.81800000000004,
+      "x": 7.6,
+      "y": 273.664,
       "z": 0
     },
     "_lrot": {
@@ -579,12 +579,12 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 202,
-      "g": 192,
-      "b": 192,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
-    "_string": "Shape",
+    "_string": "同步刚体",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -790,7 +790,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Button-002",
+    "_name": "角色idie",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -818,8 +818,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -221.97699999999998,
-      "y": 170.81800000000004,
+      "x": 125.734,
+      "y": 273.664,
       "z": 0
     },
     "_lrot": {
@@ -940,12 +940,12 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 202,
-      "g": 192,
-      "b": 192,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
-    "_string": "joint",
+    "_string": "角色idie",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 20,
@@ -1163,8 +1163,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
+      "width": 1280,
+      "height": 720
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1187,6 +1187,6 @@
     },
     "fileId": "d9ZU8K2rxHk4l6ETnmVfek",
     "instance": null,
-    "targetOverrides": null
+    "targetOverrides": []
   }
 ]

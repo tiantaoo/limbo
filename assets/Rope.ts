@@ -1,4 +1,4 @@
-import { _decorator, CCFloat, Component, DistanceJoint2D, instantiate, Node, Prefab, RigidBody2D, UITransform, v2 } from 'cc';
+import { _decorator, CCFloat, Component, DistanceJoint2D, HingeJoint2D, instantiate, Node, Prefab, RigidBody2D, UITransform, v2 } from 'cc';
 const { ccclass, property } = _decorator;
 export interface RopeNode extends Node {
     no?:number
@@ -21,20 +21,24 @@ export class Rope extends Component {
 
     createRope = () => {
         const ropeArr = []
+        const pos = this.node.getPosition()
         for (let i = 0; i < this.ropeCount; i++) {
             const ropeNode:RopeNode = instantiate(this.ropePrefab)
             const size = ropeNode.getComponent(UITransform).contentSize
-            ropeNode.setPosition(0+i,-size.height*(i+0.5))
+            ropeNode.setPosition(pos.x+i,pos.y-(size.height*i))
             ropeNode.no = i
             ropeArr.push(ropeNode)
-            const joint = ropeNode.getComponent(DistanceJoint2D)
+            const joint = ropeNode.getComponent(HingeJoint2D)||ropeNode.getComponent(DistanceJoint2D)
             if(i === 0){
                 joint.connectedBody = this.node.getComponent(RigidBody2D)
                 joint.connectedAnchor = v2(0,0)
             }else{
                 joint.connectedBody = ropeArr[i-1].getComponent(RigidBody2D)
             }
-            this.node.addChild(ropeNode)
+            if(i === this.ropeCount-1){
+                ropeNode.getComponent(RigidBody2D).gravityScale = 20
+            }
+            this.node.parent.addChild(ropeNode)
         }
         // this.pointA = this.node.getChildByName('Rope')
         // console.log(this.node.getChildByName('Rope').getWorldPosition(),

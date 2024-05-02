@@ -19,20 +19,7 @@ export class CameraCtrl extends Component {
 
     @property({ type: SpriteFrame })
     spriteFrame: SpriteFrame;
-
-    @property({ type: Node })
-    testR: Node;
-
-    protected start(): void {
-        // tween(this.testR)
-        //         .to(5, {angle:-360}, {
-        //             onUpdate: (target) => {
-        //                 console.log(target.angle,this.testR.angle)
-        //                 this.testR.angle = target.angle
-        //             }
-        //         }).start();
-    }
-
+    
     onLoad() {
         const Ca = this.camera.getComponent(CameraComponent)
         this.lastCameraPos = this.node.getPosition()
@@ -52,22 +39,6 @@ export class CameraCtrl extends Component {
         })
     }
     update(deltaTime: number) {
-        // let r:Vec3 = v3()
-        // this.testR.getRotation().getEulerAngles(r)
-        // let {x:x1,y:y1,z} = r;
-        // if(x1===0){
-        //     if(z<0){
-        //         z = z
-        //     }else{
-        //         z = -360+z
-        //     }
-        // }else{
-        //     if(z<0){
-        //         z = -180-z
-        //     }else{
-        //         z = -180-z
-        //     }
-        // }
         const { x, y } = this.player.position;
         if(y<-640){
             

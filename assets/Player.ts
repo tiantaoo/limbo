@@ -1,4 +1,4 @@
-import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, DistanceJoint2D, ERigidBody2DType, EventKeyboard, EventTarget, FixedJoint2D, HingeJoint2D, Input, Joint2D, KeyCode, Node, PolygonCollider2D, RelativeJoint2D, RigidBody2D, SpriteFrame, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, misc, v2, v3 } from 'cc';
+import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, DistanceJoint2D, ERigidBody2DType, EventKeyboard, EventTarget, FixedJoint2D, HingeJoint2D, Input, Joint2D, KeyCode, Node, PolygonCollider2D, RelativeJoint2D, RigidBody2D, SpriteFrame, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, misc, tween, v2, v3 } from 'cc';
 import { RopeNode } from './Rope';
 const { ccclass, property } = _decorator;
 const eventTarget = new EventTarget();
@@ -14,10 +14,11 @@ enum PlayState {
     CRAWL,// 爬
     CRAWL1,// 爬1
     NONE, // 无
+    TEST,
 }
 // 动画类型
 enum AnimationType {
-    RELAX = 'relax',// 放松
+    RELAX = 'wait',// 放松
     WALK = 'walk', // 走
     PUSH = 'push', // 推
     DRAG = 'drag', // 拖
@@ -26,7 +27,8 @@ enum AnimationType {
     HURT = 'hurt', // 伤
     CRAWL = 'crawl',// 爬
     CRAWL1 = 'crawl4',
-    NONE = 'none'
+    NONE = 'none',
+    TEST = 'none',
 }
 
 export const PhysicBodyName = {
@@ -82,7 +84,6 @@ export class PLayer extends Component {
     armature: dragonBones.Armature
 
     rigdNode: Node
-    testr: number = 1
 
     protected onLoad(): void {
         // 按键监听
@@ -99,6 +100,7 @@ export class PLayer extends Component {
     start() {
         this.playAnima()
         this.initSocketNode()
+        // this.initCollider()
         // 监听动画执行事件
         this.armatureDisplay.addEventListener(dragonBones.EventObject.COMPLETE, this.handleDragonBonesComplete, this)
         this.armatureDisplay.addEventListener(dragonBones.EventObject.FADE_IN, this.handleDragonBonesIN, this)
@@ -108,10 +110,9 @@ export class PLayer extends Component {
 
     }
     test1() {
-        console.log('添加刚体')
-        // this.scheduleOnce(() => {
-        //     this.addBody()
-        // })
+        this.scheduleOnce(() => {
+            this.addBody()
+        })
     }
     test2() {
         this.scheduleOnce(() => {
@@ -139,6 +140,7 @@ export class PLayer extends Component {
     // 监听动画执行完毕事件
     handleDragonBonesComplete = (e) => {
         const { name } = e.animationState
+        console.log('动画完成:', name)
         if ([AnimationType.WALK, AnimationType.PUSH, AnimationType.RELAX, AnimationType.JUMP].includes(name)) {
             this.playState = PlayState.RELAX
             this.scheduleOnce(() => {
@@ -147,22 +149,33 @@ export class PLayer extends Component {
                     this.playAnima()
                 }
             }, 0.5)
-
             if (this.node.getChildByName('R1').active === false) {
                 this.node.getChildByName('R1').active = true
             }
             // 攀爬完成
         } else if (name === AnimationType.CRAWL1) {
-            this.setIKOffset(v3())
-            this.node.getComponent(RelativeJoint2D).destroy()
             eventTarget.emit('crawl_complete')
-            const bodyPos = this.node.getWorldPosition()
-            const centerPos = this.node.getComponent(UITransform).convertToWorldSpaceAR(this.boneCenter.position)
-            const x = centerPos.x - bodyPos.x
-            const y = centerPos.y - bodyPos.y
-            this.node.setPosition(this.node.position.x + x, this.node.position.y + y)
+            // 切换休息动画
             this.playState = PlayState.RELAX
-            this.playAnima(AnimationType.RELAX)
+            this.playAnima()
+            // 计算该次动画位移的距离，将节点缓动到新位置
+            const currentPos = this.node.getWorldPosition()
+            const targetPos = this.node.getComponent(UITransform).convertToWorldSpaceAR(this.boneCenter.position)
+            const dist = targetPos.subtract(currentPos)
+            const newPos = this.node.getPosition().add(dist)
+            // 缓动时间要与淡入到休息动画的时间相同，否则会闪烁
+            tween(this.node.position).to(this.animation.getState(AnimationType.RELAX).fadeTotalTime,newPos,{
+                onUpdate: (target:Vec3)=> {
+                    this.node.position = v3(target.x,target.y)
+                },
+                onComplete:()=>{
+                    this.rig2D.enabled = true
+                },
+                onStart:() => {
+                    // 执行缓动的时候，先把物理刚体组件禁用
+                    this.rig2D.enabled = false
+                }
+            }).start()
         } else if (name === AnimationType.HURT) {
             director.emit(AnimationType.HURT)
             // this.destroy()
@@ -173,7 +186,7 @@ export class PLayer extends Component {
         const ik_left = this.armature.getBone('ik_left_hand')
         const ik_right = this.armature.getBone('ik_right_hand')
         const center = this.armature.getBone('center')
-
+        
         ik_left.offset.x = pos.x
         ik_left.offset.y = pos.y
         ik_right.offset.x = pos.x
@@ -359,14 +372,6 @@ export class PLayer extends Component {
     crawlBegin = (self: Collider2D, other: Collider2D, contact) => {
         if (other.node.name === 'Crawl' && this.playState !== PlayState.CRAWL1) {
             // 添加关节，将主角固定在原地
-            this.scheduleOnce(() => {
-                const otype = other.node.getComponent(RigidBody2D).type
-                other.node.getComponent(RigidBody2D).type = ERigidBody2DType.Kinematic
-                eventTarget.once('crawl_complete', () => {
-                    other.node.getComponent(RigidBody2D).type = otype
-                    this.node.getComponent(RelativeJoint2D)?.destroy()
-                })
-            })
             const joint = this.node.addComponent(RelativeJoint2D)
             joint.enabled = false
             joint.connectedBody = other.node.getComponent(RigidBody2D)
@@ -381,15 +386,27 @@ export class PLayer extends Component {
             joint.connectedAnchor = v2(v.x, 0)
             joint.enabled = true
             // 切换动画
+            console.log(this.armature.getBone('身体').boneData)
             this.playState = PlayState.CRAWL1
             this.playAnima()
             // 将触发点的世界坐标转化为主角的节点坐标,这个点就是触发点的中心点
-            const { x, y } = this.node.getComponent(UITransform).convertToNodeSpaceAR(other.node.worldPosition)
+            //const { x, y } = this.node.getComponent(UITransform).convertToNodeSpaceAR(other.node.worldPosition)
             // 将手掌的ik约束骨骼坐标设置为触发点的中心点，视觉上手掌抓住了某个点
-            const pos = self.node.getPosition()
-            const offset_x = x - pos.x;
-            const offset_y = y - pos.y;
-            this.setIKOffset(v3(offset_x, offset_y))
+            //const pos = self.node.getPosition()
+            // const offset_x = x - pos.x;
+            // const offset_y = y - pos.y;
+            // this.setIKOffset(v3(offset_x, offset_y))
+
+            this.scheduleOnce(() => {
+                //设置爬的物体不受力
+                const otype = other.node.getComponent(RigidBody2D).type
+                other.node.getComponent(RigidBody2D).type = ERigidBody2DType.Kinematic
+                // 监听的动画执行完成后，恢复物体受力类型，且销毁关节
+                eventTarget.once('crawl_complete', () => {
+                    other.node.getComponent(RigidBody2D).type = otype
+                    joint.destroy()
+                })
+            })
         } else if (other.node.name === 'Rope' && this.playState !== PlayState.PULL) {
         }
     }
@@ -415,13 +432,14 @@ export class PLayer extends Component {
                 }
                 break;
             // 碰到绳子
-            case 'Rope':
+            case 'Chains':
+                console.log('碰到绳子')
                 contact.disabledOnce = true;
                 // 角色R1节点没有绑定绳子时、可以绑定
                 const R1 = self.node.getChildByName('R1')
                 if (R1.active && !R1.getComponents(Joint2D).find(item => item.name === 'hands')) {
                     // 增加手关节，绑定绳子
-                    this.joint(R1, other.node, 'hands')
+                    this.joint(R1, other.node, 'hands',v2(0,-8))
                     this.playState = PlayState.PULL
                     this.playAnima()
                 }
@@ -520,8 +538,8 @@ export class PLayer extends Component {
     playAnima = (name?: AnimationType) => {
         if (name) {
             if (this.animation.isPlaying && this.animation.lastAnimationName === name) return;
-            const t = this.animation.play(name, 1)
-            t.timeScale = 0.5
+            const t = this.animation.play(name, 0)
+            // t.timeScale = 0.5
             return
         }
         // 如果当前需要执行的动画，正在播放，不执行
@@ -545,7 +563,7 @@ export class PLayer extends Component {
                 }
                 break;
             case PlayState.JUMP:
-                temp = this.animation.fadeIn(AnimationType.JUMP, 0,1)
+                temp = this.animation.fadeIn(AnimationType.JUMP, 0, 1)
                 temp.timeScale = 1.2
                 break;
             case PlayState.CRAWL1:
@@ -577,6 +595,33 @@ export class PLayer extends Component {
         this.collider2D.off(Contact2DType.BEGIN_CONTACT, this.beginContact, false)
         this.collider2D.off(Contact2DType.END_CONTACT, this.endContact, false)
     }
+    // 初始化角色碰撞盒
+    initCollider = () => {
+        for (let key in PhysicBodyName) {
+            // 获取骨骼包围盒数据
+            const name = PhysicBodyName[key]
+            const BBD: dragonBones.BoundingBoxData & { vertices?: number[] } = this.armature.getSlot(`${name}_boundingBox`).boundingBoxData
+            const bonePoint = BBD.vertices
+            const _point = this.node.addComponent(PolygonCollider2D)
+            _point.enabled = false
+            _point.friction = 0.2
+            _point.restitution = 0
+            _point.group = 1 << 1;
+            const l = bonePoint.length / 2
+            for (let i = 0; i < l; i++) {
+                let newPos = v2();
+                // 头和身体锚点特殊处理过，所以这里需要特殊处理
+                if (['头', '身体'].includes(name)) {
+                    newPos = v2(bonePoint[i * 2], -bonePoint[i * 2 + 1]).rotate(Math.PI / 2)
+                } else {
+                    newPos = v2(bonePoint[i * 2], bonePoint[i * 2 + 1]).rotate(-Math.PI / 2)
+                }
+                _point.points[i] = newPos
+            }
+            _point.enabled = true
+            _point.apply()
+        }
+    }
     // 根据骨骼信息，分别添加对应的刚体节点
     addBody = () => {
         // 先创建父节点，父节点和角色所在层级相同，这样骨骼的本地变换才能和对应刚体的变换相同
@@ -605,7 +650,7 @@ export class PLayer extends Component {
             // 添加刚体
             let body = node.addComponent(RigidBody2D);
             body.type = ERigidBody2DType.Dynamic;
-            body.angularDamping = 1
+            // body.angularDamping = 1
             // 物理分组 1
             body.group = 1 << 1
             body.wakeUp()
@@ -616,8 +661,8 @@ export class PLayer extends Component {
                 const bonePoint = BBD.vertices
                 const _point = node.addComponent(PolygonCollider2D)
                 _point.enabled = false
-                _point.friction = 0
-                _point.restitution = 0
+                _point.friction = 0.3
+                _point.restitution = 0.3
                 _point.group = 1 << 1;
                 const l = bonePoint.length / 2
                 for (let i = 0; i < l; i++) {
@@ -668,29 +713,39 @@ export class PLayer extends Component {
                     joint.enabled = false
                     joint.connectedBody = parentnode.getComponent(RigidBody2D);
                     joint.collideConnected = false
+                    joint.enableLimit = true
+                    joint.upperAngle = 360
+                    joint.lowerAngle = -45
+                    joint.enableMotor = false
                     // 这几个骨骼需要连接它们父骨骼的上端
                     if (['头', '左手上', '右手上'].includes(node.name)) {
                         joint.connectedAnchor = new Vec2(0, (parentbones.boneData.length * this.scale));
+                        joint.upperAngle = 90
                         // 这几个骨骼需要连接它们父骨骼的下端
                     } else if (['左腿下', '右腿下', '左手下', '右手下'].includes(node.name)) {
                         joint.connectedAnchor = v2(0, (-parentbones.boneData.length * this.scale));
                     }
-                    // 其他骨骼连接父骨骼的原点位置，即锚点位置
-                    joint.enableLimit = false
                     joint.enabled = true;
                 }
             }
         }
     }
+    // 创建所有关节
+    createAllJoint = () => {
+        this.addBody()
+        this.addJoint()
+        this.rig2D.enabled = false
+        this.collider2D.enabled = false
+    }
+
     idie = () => {
+        if(this.playState === PlayState.HURT) return
+        console.log('死亡')
         this.animation.stop()
         this.playState = PlayState.HURT
         this.node.removeChild(this.node.getChildByName('R1'))
         this.scheduleOnce(() => {
-            this.addBody()
-            this.addJoint()
-            this.rig2D.enabled = false
-            this.collider2D.enabled = false
+            this.createAllJoint()
         })
         this.scheduleOnce(() => {
             director.emit(AnimationType.HURT)
@@ -730,12 +785,13 @@ export class PLayer extends Component {
             bone.invalidUpdate();
         }
     }
+
     update(deltaTime: number) {
         const { x, y } = this.node.getPosition()
         if (y < -640 && this.playState !== PlayState.HURT) {
             this.idie()
         }
-        if (this.playState === PlayState.HURT && this.rigdNode) {
+        if (this.rigdNode && ([PlayState.HURT, PlayState.TEST].includes(this.playState))) {
             this.setBoneTransform()
         }
     }
