@@ -57,8 +57,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 311.091,
-      "y": -134.703,
+      "x": 885.362,
+      "y": -228.59,
       "z": 0
     },
     "_lrot": {
@@ -271,8 +271,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -18.69450000000001,
-      "y": -59.8097,
+      "x": 16.265499084472644,
+      "y": -79.70969961853027,
       "z": 0
     },
     "_lrot": {
@@ -471,16 +471,16 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -2.2164530827560047,
-      "y": -3.7878227321498414,
+      "x": -0.9224053933076837,
+      "y": 17.810268552819466,
       "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
       "x": 0,
       "y": 0,
-      "z": 0.057256484424588264,
-      "w": 0.9983595018786253
+      "z": 0.0669243333539186,
+      "w": 0.9977580536408281
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -494,7 +494,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": 6.564699999999981
+      "z": 7.674699975393258
     },
     "_id": ""
   },
@@ -593,7 +593,7 @@
       "__id__": 1
     },
     "_children": [],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 27
@@ -754,9 +754,9 @@
     "_group": 2,
     "_type": 2,
     "_allowSleep": false,
-    "_gravityScale": 5,
+    "_gravityScale": 1,
     "_linearDamping": 1,
-    "_angularDamping": 0,
+    "_angularDamping": 1,
     "_linearVelocity": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -1061,8 +1061,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 207.84,
-      "height": 520.36
+      "width": 208.2,
+      "height": 522.08
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1109,8 +1109,8 @@
       "__expectedType__": "dragonBones.DragonBonesAtlasAsset"
     },
     "_armatureName": "Armature",
-    "_animationName": "",
-    "_animationIndexValue": 0,
+    "_animationName": "relax",
+    "_animationIndexValue": 1,
     "_defaultCacheModeValue": 0,
     "_timeScale": 1,
     "_playTimes": -1,
@@ -1158,18 +1158,18 @@
     },
     "tag": 0,
     "_group": 2,
-    "_density": 50,
+    "_density": 1.5,
     "_sensor": false,
     "_friction": 0.2,
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -4.6,
-      "y": 7.1
+      "x": -3.6,
+      "y": 11
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 119.6,
+      "width": 164.6,
       "height": 518
     },
     "_id": ""
@@ -1198,6 +1198,7 @@
     "boneCenter": {
       "__id__": 20
     },
+    "spriteFrame": null,
     "_id": ""
   },
   {
@@ -1213,7 +1214,7 @@
       "__id__": 0
     },
     "fileId": "6cy5It5f5FRLMJN1+HUqwp",
-    "targetOverrides": [],
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": [
       {
         "__id__": 39

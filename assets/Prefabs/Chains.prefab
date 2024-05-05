@@ -225,7 +225,7 @@
     },
     "tag": 0,
     "_group": 16,
-    "_density": 50,
+    "_density": 30,
     "_sensor": true,
     "_friction": 0.2,
     "_restitution": 0,

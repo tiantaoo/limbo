@@ -67,11 +67,11 @@ export class PLayer extends Component {
     // 是否在地上
     isOnFloor: boolean = false
     // 最大推力
-    maxPushF: number = 120;
+    maxPushF: number = 1600;
     // 行走速度
     wakeV: number = 6
     // 跳跃力
-    jumpF: number = 600;
+    jumpF: number = 30;
     // 角色缩放
     scale: number = 0.1
     // 角色运动状态,默认放松
@@ -164,14 +164,14 @@ export class PLayer extends Component {
             const dist = targetPos.subtract(currentPos)
             const newPos = this.node.getPosition().add(dist)
             // 缓动时间要与淡入到休息动画的时间相同，否则会闪烁
-            tween(this.node.position).to(this.animation.getState(AnimationType.RELAX).fadeTotalTime,newPos,{
-                onUpdate: (target:Vec3)=> {
-                    this.node.position = v3(target.x,target.y)
+            tween(this.node.position).to(this.animation.getState(AnimationType.RELAX).fadeTotalTime, newPos, {
+                onUpdate: (target: Vec3) => {
+                    this.node.position = v3(target.x, target.y)
                 },
-                onComplete:()=>{
+                onComplete: () => {
                     this.rig2D.enabled = true
                 },
-                onStart:() => {
+                onStart: () => {
                     // 执行缓动的时候，先把物理刚体组件禁用
                     this.rig2D.enabled = false
                 }
@@ -186,7 +186,7 @@ export class PLayer extends Component {
         const ik_left = this.armature.getBone('ik_left_hand')
         const ik_right = this.armature.getBone('ik_right_hand')
         const center = this.armature.getBone('center')
-        
+
         ik_left.offset.x = pos.x
         ik_left.offset.y = pos.y
         ik_right.offset.x = pos.x
@@ -218,6 +218,7 @@ export class PLayer extends Component {
             // 拉绳中
             if (this.playState === PlayState.PULL) {
                 // 上下移动
+                // 找到下一个关节
                 const R1 = this.node.getChildByName('R1')
                 const dir = e.keyCode === KeyCode.ARROW_UP ? -1 : 1;
                 const curIndex = this.curJoinNode.no
@@ -225,11 +226,25 @@ export class PLayer extends Component {
                 const joint = R1.getComponents(Joint2D).find(item => item.name === 'hands')
                 joint.enabled = false;
                 if (preNode) {
-                    joint.connectedBody = preNode.getComponent(RigidBody2D)
-                    joint.enabled = true;
-                    this.curJoinNode = preNode
+                    //开始缓动
+                    const op = this.node.getPosition()
+                    let den = this.collider2D.density
+                    tween(this.node.position).to(1.25/2, v3(op.x, op.y + (-dir*18)), {
+                        onUpdate: (target: Vec3) => {
+                            this.node.position = target
+                        },
+                        onComplete: () => {
+                            joint.connectedBody = preNode.getComponent(RigidBody2D)
+                            joint.enabled = true;
+                            this.curJoinNode = preNode
+                            this.collider2D.density = den
+                        },
+                        onStart:() => {
+                            this.collider2D.density = 0
+                            this.playAnima()
+                        }
+                    }).start()
                     // 状态不切换，直接播放爬绳子的动画
-                    this.playAnima()
                 } else {
                     this.removeJoint(R1, 'hands')
                     // 禁用R1节点，防止在跳下的过程中再次连接绳子
@@ -439,7 +454,7 @@ export class PLayer extends Component {
                 const R1 = self.node.getChildByName('R1')
                 if (R1.active && !R1.getComponents(Joint2D).find(item => item.name === 'hands')) {
                     // 增加手关节，绑定绳子
-                    this.joint(R1, other.node, 'hands',v2(0,-8))
+                    this.joint(R1, other.node, 'hands', v2(0, -8))
                     this.playState = PlayState.PULL
                     this.playAnima()
                 }
@@ -460,6 +475,9 @@ export class PLayer extends Component {
                         this.idie()
                     })
                 }
+                break;
+            case 'Mutou':
+
                 break;
             default:
                 break;
@@ -574,7 +592,8 @@ export class PLayer extends Component {
                 this.animation.fadeIn(AnimationType.PULL, fadeInTime, 1)
                 break;
             case PlayState.CRAWL:
-                this.animation.fadeIn(AnimationType.CRAWL, 0.2, 1)
+                const ceawl1 = this.animation.fadeIn(AnimationType.CRAWL, 0.2, 1)
+                ceawl1.timeScale = 5
                 break;
             case PlayState.PUSH:
                 let fadeInTime1 = this.animation.lastAnimationName === AnimationType.PUSH ? 0 : 0.2;
@@ -739,7 +758,7 @@ export class PLayer extends Component {
     }
 
     idie = () => {
-        if(this.playState === PlayState.HURT) return
+        if (this.playState === PlayState.HURT) return
         console.log('死亡')
         this.animation.stop()
         this.playState = PlayState.HURT

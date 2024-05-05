@@ -1,11 +1,22 @@
-import { _decorator, Component, Contact2DType, EPhysics2DDrawFlags, PhysicsSystem2D, PolygonCollider2D, RigidBody2D, v2, v3, Vec2, Vec3 } from 'cc';
+import { _decorator, Component, v2, Vec2, Collider2D, IPhysics2DContact, PolygonCollider2D, Contact2DType, PhysicsSystem2D, RigidBody, v3, RigidBody2D } from 'cc';
+
 const { ccclass, property } = _decorator;
-PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape
-function inside(cp1, cp2, p) {
-    return (cp2.x - cp1.x) * (p.y - cp1.y) > (cp2.y - cp1.y) * (p.x - cp1.x);
+
+interface IComputeAC {
+    area: number;
+    centroid: Vec2;
 }
 
-function intersection(cp1, cp2, s, e) {
+// 浮力工作步骤：
+// 1. 计算两个多边形交点
+// 2. 计算多边形的面积和质心
+// 3. 根据质心和面积施加浮力
+// 4. 添加阻力减缓流速
+
+function inside(cp1: Vec2, cp2: Vec2, p: Vec2) {
+    return (cp2.x - cp1.x) * (p.y - cp1.y) > (cp2.y - cp1.y) * (p.x - cp1.x);
+}
+function intersection(cp1: Vec2, cp2: Vec2, s: Vec2, e: Vec2) {
     let dc = v2(cp1.x - cp2.x, cp1.y - cp2.y);
     let dp = v2(s.x - e.x, s.y - e.y);
     let n1 = cp1.x * cp2.y - cp1.y * cp2.x;
@@ -13,76 +24,61 @@ function intersection(cp1, cp2, s, e) {
     let n3 = (dc.x * dp.y - dc.y * dp.x);
     return v2((n1 * dp.x - n2 * dc.x) / n3, (n1 * dp.y - n2 * dc.y) / n3);
 }
-// 计算面积和中心点
-function computeAC(vs:Vec2[]):[number,Vec2] {
+function computeAC(vs: Vec2[]): IComputeAC {
     let count = vs.length;
-    var c = v2(0, 0);
-    var area = 0.0;
-    var p1X = 0.0;
-    var p1Y = 0.0;
-    var inv3 = 1.0 / 3.0;
-    for (var i = 0; i < count; ++i) {
-        var p2 = vs[i];
-        var p3 = i + 1 < count ? vs[i + 1] : vs[0];
-        var e1X = p2.x - p1X;
-        var e1Y = p2.y - p1Y;
-        var e2X = p3.x - p1X;
-        var e2Y = p3.y - p1Y;
-        var D = (e1X * e2Y - e1Y * e2X);
-        var triangleArea = 0.5 * D; area += triangleArea;
+    let c = v2(0, 0);
+    let area = 0.0;
+    let p1X = 0.0;
+    let p1Y = 0.0;
+    let inv3 = 1.0 / 3.0;
+    for (let i = 0; i < count; ++i) {
+        let p2 = vs[i];
+        let p3 = i + 1 < count ? vs[i + 1] : vs[0];
+        let e1X = p2.x - p1X;
+        let e1Y = p2.y - p1Y;
+        let e2X = p3.x - p1X;
+        let e2Y = p3.y - p1Y;
+        let D = (e1X * e2Y - e1Y * e2X);
+        let triangleArea = 0.5 * D; area += triangleArea;
         c.x += triangleArea * inv3 * (p1X + p2.x + p3.x);
         c.y += triangleArea * inv3 * (p1Y + p2.y + p3.y);
     }
-
-
-    return [area, c];
+    return { area, centroid: c };
 }
 @ccclass('Fluid')
 export class Fluid extends Component {
-    inFluid: [RigidBody2D]
-    fluidBody: RigidBody2D
-    fluidCollider: PolygonCollider2D
-    density = 4
-    angularDrag = 1
+    // 水密度
+    density: number = 1
+    // 水摩擦力
+    friction:number = 0
+    angularDrag =1
     linearDrag = 1
-    gravity:Vec3 = v3(0,10,0)
+    // 水流横向速度
+    lineVx = 0.8
+
+    inFluid: PolygonCollider2D[] = [];
+    gravity = new Vec2();
+    // 浮力碰撞盒子
+    fluidCollider: PolygonCollider2D = null!;
+
     onLoad() {
-        this.fluidBody = this.node.getComponent(RigidBody2D)
-        this.fluidCollider = this.node.getComponent(PolygonCollider2D)
-        this.fluidCollider.on(Contact2DType.BEGIN_CONTACT, this.waterBeginContact, this)
-        this.fluidCollider.on(Contact2DType.END_CONTACT, this.waterEndContact, this)
-    }
-    // 监听碰撞水
-    waterBeginContact = (self: PolygonCollider2D, other: PolygonCollider2D, contact) => {
-        const otherRig = other.node.getComponent(RigidBody2D)
-        if(this.inFluid){
-            this.inFluid.push(otherRig)
-        }else{
-            this.inFluid = [otherRig]
-        }
-        contact.disabled = true
-        console.log(`${other.name}进入`)
-    }
-    waterEndContact = (self: PolygonCollider2D, other: PolygonCollider2D, contact) => {
-        const otherRig = other.node.getComponent(RigidBody2D)
-        let index = this.inFluid.indexOf(otherRig);
-        this.inFluid.splice(index, 1);
-        contact.disabled = true
-        console.log(`${other.name}离开`)
+        this.createFluid();
     }
 
-    findIntersectionAreaAndCentroid = (body:RigidBody2D): [number, Vec2] => {
-        let fixtureB = body.node.getComponent(PolygonCollider2D);
+    // 计算相交多边形面积和质心
+    findIntersectionAreaAndCentroid(collider: PolygonCollider2D): IComputeAC {
+        // let fixtureB = body.m_fixtureList;
+        let fixtureB = collider.body.impl.impl.m_fixtureList;
+        
+        if (!fixtureB || fixtureB.GetType() !== 2) {
+            return;
+        }
         let centroid = v2(0, 0);
         let area = 0;
-        let mass: number = 0;
-        let temp = []
-        if (fixtureB) {
-            // 液体边界点
-            let outputList:Vec2[] = this.getVertices(this.fluidBody,true);
-            // 漂浮物边界点
-            let clipPolygon:Vec2[] = this.getVertices(body);
-            
+        let mass = 0;
+        while (fixtureB) {
+            let outputList = this.getVertices(this.fluidCollider);
+            let clipPolygon = this.getVertices(collider);
             let cp1 = clipPolygon[clipPolygon.length - 1];
             for (let j = 0; j < clipPolygon.length; j++) {
                 let cp2 = clipPolygon[j];
@@ -104,82 +100,110 @@ export class Fluid extends Component {
                 }
                 cp1 = cp2;
             }
-            temp = outputList
             let ac = computeAC(outputList);
-            let density = fixtureB.density;
-            mass += ac[0] * density;
-            area += ac[0];
-
-            //centroid.addSelf(ac[1].mul(density));
-            
-            centroid.x += ac[1].x * density;
-            centroid.y += ac[1].y * density;
+            let density = fixtureB.GetDensity();
+            mass += ac.area * density;
+            area += ac.area;
+            centroid.x += ac.centroid.x * density;
+            centroid.y += ac.centroid.y * density;
+            fixtureB = fixtureB.GetNext();
         }
-        centroid = centroid.multiplyScalar(1 / mass)
-        if(area>0){
-            console.log(area,temp)
-        }
-        return [area, centroid];
-
+        centroid.multiplyScalar(1 / mass);
+        return { area, centroid };
     }
-    // 设置浮力
-    applyBuoyancy(body:RigidBody2D) {
-        //获取面积和质心
-        let AC = this.findIntersectionAreaAndCentroid(body);
-        if (AC[0] !== 0) {
-            console.log('面积',AC[0])
-            let mass = AC[0] * this.density;
-            let centroid = AC[1];
-            let buoyancyForce = new Vec2(mass * this.gravity.x, mass * this.gravity.y);
-            body.applyForce(buoyancyForce, centroid,true);
-            console.log('浮力',buoyancyForce)
 
+    createFluid() {
+        this.inFluid.length = 0;
+        this.gravity.set(0, 10);
+        if(!this.fluidCollider){
+            this.fluidCollider = this.node.getComponent(PolygonCollider2D);
+        }
+        if (this.fluidCollider) {
+            console.log('监听成功')
+            this.fluidCollider.sensor = true
+            this.fluidCollider.density = this.density
+            this.fluidCollider.friction = this.friction
+            this.fluidCollider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+            this.fluidCollider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
+        }
+    }
+    protected onDestroy(): void {
+        if (this.fluidCollider) {
+            this.fluidCollider.off(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+            this.fluidCollider.off(Contact2DType.END_CONTACT, this.onEndContact, this);
+        }
+    }
+
+    onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact?: IPhysics2DContact) {
+        console.log('进入')
+        const bodyB = otherCollider as PolygonCollider2D;
+        this.inFluid.push(bodyB);
+        if (contact) {
+            contact.disabled = true;
+        }
+    }
+
+    onEndContact(selfCollider: Collider2D, otherCollider: Collider2D, contact?: IPhysics2DContact) {
+        let bodyB = otherCollider as PolygonCollider2D;
+        let index = this.inFluid.indexOf(bodyB);
+        this.inFluid.splice(index, 1);
+        if (contact) {
+            contact.disabled = true;
+            console.log('离开')
+
+        }
+    }
+
+    //
+    applyBuoyancy(collider: PolygonCollider2D) {
+        const AC = this.findIntersectionAreaAndCentroid(collider);//get the area and centroid
+        if (AC.area !== 0) {
+            const b2Body = collider.body.impl.impl;
+            let mass = AC.area * this.density;
+            let centroid = AC.centroid;
+            let b2Vec2 = PhysicsSystem2D.instance.physicsWorld.impl.m_gravity.constructor;
+
+            let buoyancyForce = new b2Vec2(mass * this.gravity.x, mass * this.gravity.y);
+            b2Body.ApplyForce(buoyancyForce, centroid);
             let body_vw = v2();
             let fluidBody_vw = v2();
-            body.getLinearVelocityFromWorldPoint(centroid, body_vw);
-            this.fluidBody.getLinearVelocityFromWorldPoint(centroid, fluidBody_vw);
+            b2Body.GetLinearVelocityFromWorldPoint(centroid, body_vw);
+            this.fluidCollider.body.impl.impl.GetLinearVelocityFromWorldPoint(centroid, fluidBody_vw);
             let velDir = body_vw.subtract(fluidBody_vw);
-            console.log('中心点线性速度向量',velDir)
-
             let dragMag = this.density * this.linearDrag * mass;
-            let dragForce = velDir.add2f(-dragMag,-dragMag);
-            body.applyForce(dragForce, centroid,true);
-            console.log('力',dragForce)
-
-            let torque = -body.getInertia() / body.getMass() * mass * body.angularVelocity * this.angularDrag;
-            body.applyTorque(torque,true);
-            console.log('扭矩力',torque)
+            let dragForce = velDir.multiplyScalar(-dragMag);
+            b2Body.ApplyForce(dragForce, centroid);
+            let torque = -b2Body.GetInertia() / b2Body.GetMass() * mass * b2Body.GetAngularVelocity() * this.angularDrag;
+            b2Body.ApplyTorque(torque);
+            if(collider.node.name === 'Mutou'){
+                const rig = collider.body.getComponent(RigidBody2D)
+                rig.linearVelocity = v2(this.lineVx,rig.linearVelocity.y)
+            }
+            
         }
     }
-    getVertices(body:RigidBody2D,isFluid:boolean = false) {
-        let shape:PolygonCollider2D
-        if(isFluid){
-            shape = this.fluidCollider;
-        }else{
-            shape = body.node.getComponent(PolygonCollider2D)
-            console.log('漂浮物的点-本地坐标',shape.points)
-        }
-        let vertices = [];
-        for (let i = 0; i < shape.points.length; i++) {
-            let pos_w = v2(0,0)
-            body.getWorldPoint(shape.points[i],pos_w)
+
+    getVertices(collider: PolygonCollider2D) {
+        let b2Body = collider.body.impl.impl;
+        let shape = b2Body.m_fixtureList.m_shape;
+        let vertices: Vec2[] = [];
+        for (var i = 0; i < shape.m_count; i++) {
+
+            let pos = v2(shape.m_vertices[i].x, shape.m_vertices[i].y);
+
+            let pos_w = v2();
+            b2Body.GetWorldPoint(pos, pos_w);
             vertices.push(pos_w);
         }
-        if(!isFluid){
-            console.log('漂浮物的点-世界坐标',vertices)
-        }else{
-            console.log('液体的点-世界坐标',vertices)
-        }
+
         return vertices;
     }
-    protected update(dt: number): void {
-        if(this.inFluid){
-            for (let i = 0, l = this.inFluid.length; i < l; i++) {
-                this.applyBuoyancy(this.inFluid[i]);
-            }
+
+    update(dt: number) {
+        const l = this.inFluid.length;
+        for (let i = 0; i < l; i++) {
+            this.applyBuoyancy(this.inFluid[i]);
         }
-        
     }
+
 }
-
-
