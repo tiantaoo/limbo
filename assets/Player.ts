@@ -1,4 +1,4 @@
-import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, DistanceJoint2D, ERigidBody2DType, EventKeyboard, EventTarget, FixedJoint2D, HingeJoint2D, Input, Joint2D, KeyCode, Node, PolygonCollider2D, RelativeJoint2D, RigidBody2D, SpriteFrame, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, misc, tween, v2, v3 } from 'cc';
+import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, DistanceJoint2D, ERigidBody2DType, EventKeyboard, EventTarget, FixedJoint2D, HingeJoint2D, Input, Joint2D, KeyCode, Node, PolygonCollider2D, RelativeJoint2D, RigidBody2D, UITransform, Vec2, Vec3, _decorator, animation, director, dragonBones, input, misc, tween, v2, v3 } from 'cc';
 import { RopeNode } from './Rope';
 const { ccclass, property } = _decorator;
 const eventTarget = new EventTarget();
@@ -46,26 +46,20 @@ export const PhysicBodyName = {
 
 @ccclass('PLayer')
 export class PLayer extends Component {
-    // 碰撞盒子
-    collider2D: BoxCollider2D;
     // 可碰撞挂点集合
     @property({ type: [Node] })
     socketNodes: Node[] = [];
     // 骨骼中心挂点
     @property({ type: Node })
     boneCenter: Node;
-
-    // 
-    @property({ type: SpriteFrame })
-    spriteFrame: SpriteFrame;
     // 刚体
     rig2D: RigidBody2D;
+    // 碰撞盒子
+    collider2D: BoxCollider2D;
     // 动画组件
     armatureDisplay: dragonBones.ArmatureDisplay
     // 动画状态
     animation: dragonBones.Animation
-    // 是否在地上
-    isOnFloor: boolean = false
     // 最大推力
     maxPushF: number = 1600;
     // 行走速度
@@ -75,15 +69,14 @@ export class PLayer extends Component {
     // 角色缩放
     scale: number = 0.1
     // 角色运动状态,默认放松
-    playState: PlayState = PlayState.RELAX
+    playState: PlayState = PlayState.NONE
     // 角色正在靠近的需要处理的节点
     nearNodes: Node[] = []
     curJoinNode: RopeNode
-    isT: boolean = false
     // 动画播放器
     armature: dragonBones.Armature
-
-    rigdNode: Node
+    // 模拟骨骼刚体的父节点
+    boneRigParent: Node
 
     protected onLoad(): void {
         // 按键监听
@@ -92,38 +85,28 @@ export class PLayer extends Component {
         input.on(Input.EventType.KEY_UP, this.handUp, false);
         this.collider2D = this.node.getComponent(BoxCollider2D)
         this.rig2D = this.node.getComponent(RigidBody2D)
-        this.armatureDisplay = this.node.getComponent(dragonBones.ArmatureDisplay)
-        this.armature = this.armatureDisplay.armature()
-        this.animation = this.armature.animation
-
+        const animaStatus = this.node.getComponent(animation.AnimationController)
+        console.log(animaStatus.graph)
+        // this.armatureDisplay = this.node.getComponent(dragonBones.ArmatureDisplay)
+        // this.armature = this.armatureDisplay.armature()
+        // this.animation = this.armature.animation
     }
     start() {
-        this.playAnima()
-        this.initSocketNode()
-        // this.initCollider()
+        // this.playAnima()
+        // this.initSocketNode()
         // 监听动画执行事件
-        this.armatureDisplay.addEventListener(dragonBones.EventObject.COMPLETE, this.handleDragonBonesComplete, this)
-        this.armatureDisplay.addEventListener(dragonBones.EventObject.FADE_IN, this.handleDragonBonesIN, this)
+        // this.armatureDisplay.addEventListener(dragonBones.EventObject.COMPLETE, this.handleDragonBonesComplete, this)
+        // this.armatureDisplay.addEventListener(dragonBones.EventObject.FADE_IN, this.handleDragonBonesIN, this)
         // 碰撞监听
         this.collider2D.on(Contact2DType.BEGIN_CONTACT, this.beginContact, false)
         this.collider2D.on(Contact2DType.END_CONTACT, this.endContact, false)
 
     }
-    test1() {
-        this.scheduleOnce(() => {
-            this.addBody()
-        })
+    startWait(){
+        console.log('test1')
     }
-    test2() {
-        this.scheduleOnce(() => {
-            this.addJoint()
-        })
-    }
-    test3() {
-        this.idie()
-    }
-    test4() {
-        director.emit(AnimationType.HURT)
+    endWait(){
+        console.log('test2')
     }
     /**
      * 初始化挂点的事件监听
@@ -134,13 +117,11 @@ export class PLayer extends Component {
             node.getComponent(CircleCollider2D).on(Contact2DType.BEGIN_CONTACT, this.crawlBegin)
         })
     }
-    handleDragonBonesIN = (e) => {
-        const { name } = e.animationState
-    }
+    // 动画淡入事件
+    handleDragonBonesIN = (e) => {}
     // 监听动画执行完毕事件
     handleDragonBonesComplete = (e) => {
         const { name } = e.animationState
-        console.log('动画完成:', name)
         if ([AnimationType.WALK, AnimationType.PUSH, AnimationType.RELAX, AnimationType.JUMP].includes(name)) {
             this.playState = PlayState.RELAX
             this.scheduleOnce(() => {
@@ -180,22 +161,6 @@ export class PLayer extends Component {
             director.emit(AnimationType.HURT)
             // this.destroy()
         }
-    }
-    // 设置ik偏移
-    setIKOffset = (pos: Vec3) => {
-        const ik_left = this.armature.getBone('ik_left_hand')
-        const ik_right = this.armature.getBone('ik_right_hand')
-        const center = this.armature.getBone('center')
-
-        ik_left.offset.x = pos.x
-        ik_left.offset.y = pos.y
-        ik_right.offset.x = pos.x
-        ik_right.offset.y = pos.y
-        center.offset.x = pos.x
-        center.offset.y = pos.y
-        ik_left.invalidUpdate()
-        ik_right.invalidUpdate()
-        center.invalidUpdate()
     }
     /**
      * 按键按下
@@ -404,14 +369,6 @@ export class PLayer extends Component {
             console.log(this.armature.getBone('身体').boneData)
             this.playState = PlayState.CRAWL1
             this.playAnima()
-            // 将触发点的世界坐标转化为主角的节点坐标,这个点就是触发点的中心点
-            //const { x, y } = this.node.getComponent(UITransform).convertToNodeSpaceAR(other.node.worldPosition)
-            // 将手掌的ik约束骨骼坐标设置为触发点的中心点，视觉上手掌抓住了某个点
-            //const pos = self.node.getPosition()
-            // const offset_x = x - pos.x;
-            // const offset_y = y - pos.y;
-            // this.setIKOffset(v3(offset_x, offset_y))
-
             this.scheduleOnce(() => {
                 //设置爬的物体不受力
                 const otype = other.node.getComponent(RigidBody2D).type
@@ -644,14 +601,14 @@ export class PLayer extends Component {
     // 根据骨骼信息，分别添加对应的刚体节点
     addBody = () => {
         // 先创建父节点，父节点和角色所在层级相同，这样骨骼的本地变换才能和对应刚体的变换相同
-        if (!this.rigdNode) {
-            this.rigdNode = new Node('RigdNode')
-            this.rigdNode.addComponent(UITransform)
-            this.rigdNode.parent = this.armatureDisplay.node.parent
+        if (!this.boneRigParent) {
+            this.boneRigParent = new Node('RigdNode')
+            this.boneRigParent.addComponent(UITransform)
+            this.boneRigParent.parent = this.armatureDisplay.node.parent
         }
         // 缩放和位置同步
-        this.rigdNode.scale = this.armatureDisplay.node.scale
-        this.rigdNode.position = this.armatureDisplay.node.getPosition()
+        this.boneRigParent.scale = this.armatureDisplay.node.scale
+        this.boneRigParent.position = this.armatureDisplay.node.getPosition()
         //循环添加骨骼对应的刚体
         for (let key in PhysicBodyName) {
             const node = new Node(PhysicBodyName[key]);
@@ -659,7 +616,7 @@ export class PLayer extends Component {
             const UITr = node.addComponent(UITransform)
             //节点锚点设置，方便与骨骼同步,头和身体的原点在最底端，其他肢体在顶端
             UITr.setAnchorPoint(v2(0.5, ['头', '身体'].includes(name) ? 0 : 1));
-            node.parent = this.rigdNode;
+            node.parent = this.boneRigParent;
             let bones = this.armature.getBone(name);//根据名称获取骨骼
             let len = 0;
             if (bones) {
@@ -712,9 +669,9 @@ export class PLayer extends Component {
      * 给构建的骨骼刚体添加铰链关节，模拟人体关节
      */
     addJoint = () => {
-        for (let i = 0, len = this.rigdNode.children.length; i < len; i++) {
+        for (let i = 0, len = this.boneRigParent.children.length; i < len; i++) {
             // 当前骨头刚体
-            const node = this.rigdNode.children[i];
+            const node = this.boneRigParent.children[i];
             // 当前骨头
             const bones = this.armature.getBone(node.name);
             // 将IK取消掉
@@ -772,8 +729,8 @@ export class PLayer extends Component {
     }
     // 设置骨头变换数据
     setBoneTransform = () => {
-        for (let i = 0, len = this.rigdNode.children.length; i < len; i++) {
-            let node = this.rigdNode.children[i];
+        for (let i = 0, len = this.boneRigParent.children.length; i < len; i++) {
+            let node = this.boneRigParent.children[i];
             let bone = this.armature.getBone(node.name);
             bone.offsetMode = 2;
             let offset = bone.offset;
@@ -810,7 +767,7 @@ export class PLayer extends Component {
         if (y < -640 && this.playState !== PlayState.HURT) {
             this.idie()
         }
-        if (this.rigdNode && ([PlayState.HURT, PlayState.TEST].includes(this.playState))) {
+        if (this.boneRigParent && ([PlayState.HURT, PlayState.TEST].includes(this.playState))) {
             this.setBoneTransform()
         }
     }

@@ -2,12 +2,12 @@
   "ver": "2.0.3",
   "importer": "animation-clip",
   "imported": true,
-  "uuid": "5d46edb2-f567-448b-af51-a3c62700ccbe",
+  "uuid": "9ae25afb-85c7-43ac-b0d5-8c9991a1a5b2",
   "files": [
     ".cconb"
   ],
   "subMetas": {},
   "userData": {
-    "name": "animation"
+    "name": "jump1"
   }
 }
