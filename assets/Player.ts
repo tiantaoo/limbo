@@ -1,24 +1,39 @@
 import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, DistanceJoint2D, ERigidBody2DType, EventKeyboard, EventTarget, FixedJoint2D, HingeJoint2D, Input, Joint2D, KeyCode, Node, PolygonCollider2D, RelativeJoint2D, RigidBody2D, UITransform, Vec2, Vec3, _decorator, animation, director, dragonBones, input, misc, tween, v2, v3 } from 'cc';
 import { RopeNode } from './Rope';
+
+import { createMachine } from 'xstate';
+
+const toggleMachine = createMachine({
+  id: 'toggle',
+  initial: 'Inactive',
+  states: {
+    Inactive: {
+      on: { toggle: 'Active' },
+    },
+    Active: {
+      on: { toggle: 'Inactive' },
+    },
+  },
+});
+
 const { ccclass, property } = _decorator;
 const eventTarget = new EventTarget();
 // 运动状态
 enum PlayState {
-    RELAX,// 放松
-    WALK, // 走
-    PUSH, // 推
-    DRAG, // 拖
-    CORD, // 拉
-    JUMP1, // 跳
-    JUMP2, // 跳
-    HURT, // 伤
-    CRAWL1,// 爬
-    NONE, // 无
-    RUN,
+    WAIT = 0,   // 等待
+    WALK = 1,   // 走
+    RUN = 2,    // 跑
+    PUSH = 3,   // 推
+    DRAG = 4,   // 拖
+    CORD = 5,   // 拉
+    JUMP1 = 6,  // 跳-上
+    JUMP2 = 7,  // 跳-下
+    CRAWL = 8,  // 爬
+    HURT = 9,   // 伤
 }
 // 动画类型
 enum AnimationType {
-    RELAX = 'wait',// 放松
+    WAIT = 'wait',// 放松
     WALK = 'walk', // 走
     PUSH = 'push', // 推
     DRAG = 'drag', // 拖
@@ -26,10 +41,8 @@ enum AnimationType {
     JUMP1 = 'jump1', // 跳
     HURT = 'hurt', // 伤
     CRAWL = 'crawl',// 爬
-    CRAWL1 = 'crawl4',
-    NONE = 'none',
-    TEST = 'none',
 }
+
 
 export const PhysicBodyName = {
     HEAD: '头',
@@ -44,6 +57,15 @@ export const PhysicBodyName = {
     RIGHT_FOOT2: '右腿下',
 }
 
+// 状态触发器
+enum StatusTrigger {
+    UP = 'up',
+    DOWM = 'down',
+    LEFT = 'left',
+    RIGHT = 'right',
+    WAIT = 'wait',
+    JUMP = 'jump',
+}
 @ccclass('PLayer')
 export class PLayer extends Component {
     // 可碰撞挂点集合
@@ -69,7 +91,7 @@ export class PLayer extends Component {
     // 角色缩放
     scale: number = 0.1
     // 角色运动状态,默认放松
-    playState: PlayState = PlayState.RELAX
+    playState: PlayState = PlayState.WAIT
     // 角色正在靠近的需要处理的节点
     nearNodes: Node[] = []
     curJoinNode: RopeNode
@@ -77,7 +99,7 @@ export class PLayer extends Component {
     armature: dragonBones.Armature
     // 模拟骨骼刚体的父节点
     boneRigParent: Node
-    animaCtrl:animation.AnimationController
+    animaCtrl: animation.AnimationController
 
     protected onLoad(): void {
         // 按键监听
@@ -86,27 +108,20 @@ export class PLayer extends Component {
         input.on(Input.EventType.KEY_UP, this.handUp, false);
         this.collider2D = this.node.getComponent(BoxCollider2D)
         this.rig2D = this.node.getComponent(RigidBody2D)
-        this.animaCtrl = this.node.getComponent(animation.AnimationController)
-        // this.armatureDisplay = this.node.getComponent(dragonBones.ArmatureDisplay)
-        // this.armature = this.armatureDisplay.armature()
-        // this.animation = this.armature.animation
+        this.armatureDisplay = this.node.getComponent(dragonBones.ArmatureDisplay)
+        this.armature = this.armatureDisplay.armature()
+        this.animation = this.armature.animation
     }
     start() {
         this.playAnima()
         // this.initSocketNode()
         // 监听动画执行事件
-        // this.armatureDisplay.addEventListener(dragonBones.EventObject.COMPLETE, this.handleDragonBonesComplete, this)
-        // this.armatureDisplay.addEventListener(dragonBones.EventObject.FADE_IN, this.handleDragonBonesIN, this)
+        this.armatureDisplay.addEventListener(dragonBones.EventObject.COMPLETE, this.handleDragonBonesComplete, this)
+        this.armatureDisplay.addEventListener(dragonBones.EventObject.FADE_IN, this.handleDragonBonesIN, this)
         // 碰撞监听
         this.collider2D.on(Contact2DType.BEGIN_CONTACT, this.beginContact, false)
         this.collider2D.on(Contact2DType.END_CONTACT, this.endContact, false)
 
-    }
-    startWait(){
-        console.log('test1')
-    }
-    endWait(){
-        console.log('test2')
     }
     /**
      * 初始化挂点的事件监听
@@ -118,15 +133,15 @@ export class PLayer extends Component {
         })
     }
     // 动画淡入事件
-    handleDragonBonesIN = (e) => {}
+    handleDragonBonesIN = (e) => { }
     // 监听动画执行完毕事件
     handleDragonBonesComplete = (e) => {
         const { name } = e.animationState
-        if ([AnimationType.WALK, AnimationType.PUSH, AnimationType.RELAX, AnimationType.JUMP1].includes(name)) {
-            this.playState = PlayState.RELAX
+        if ([AnimationType.WALK, AnimationType.PUSH, AnimationType.WAIT, AnimationType.JUMP1].includes(name)) {
+            this.playState = PlayState.WAIT
             this.scheduleOnce(() => {
                 // 0.5S 后状态还不变，就执行休息动画
-                if (this.playState === PlayState.RELAX) {
+                if (this.playState === PlayState.WAIT) {
                     this.playAnima()
                 }
             }, 0.5)
@@ -134,10 +149,10 @@ export class PLayer extends Component {
                 this.node.getChildByName('R1').active = true
             }
             // 攀爬完成
-        } else if (name === AnimationType.CRAWL1) {
+        } else if (name === AnimationType.CRAWL) {
             eventTarget.emit('crawl_complete')
             // 切换休息动画
-            this.playState = PlayState.RELAX
+            this.playState = PlayState.WAIT
             this.playAnima()
             // 计算该次动画位移的距离，将节点缓动到新位置
             const currentPos = this.node.getWorldPosition()
@@ -145,7 +160,7 @@ export class PLayer extends Component {
             const dist = targetPos.subtract(currentPos)
             const newPos = this.node.getPosition().add(dist)
             // 缓动时间要与淡入到休息动画的时间相同，否则会闪烁
-            tween(this.node.position).to(this.animation.getState(AnimationType.RELAX).fadeTotalTime, newPos, {
+            tween(this.node.position).to(this.animation.getState(AnimationType.WAIT).fadeTotalTime, newPos, {
                 onUpdate: (target: Vec3) => {
                     this.node.position = v3(target.x, target.y)
                 },
@@ -162,6 +177,19 @@ export class PLayer extends Component {
             // this.destroy()
         }
     }
+    updateState = (trigger: StatusTrigger) => {
+        console.log(`触发了${trigger}`)
+        // 设置触发器
+        this.animaCtrl.setValue(trigger, true)
+        this.scheduleOnce(() => {
+            const currentStatus = this.animaCtrl.getCurrentStateStatus(0).__DEBUG_ID__
+            console.log(`当前是${currentStatus}上一个是${this.animation.lastAnimationName}`)
+            if (this.animation.isPlaying && this.animation.lastAnimationName === currentStatus) return;
+            console.log(`从${this.animation.lastAnimationName}到${currentStatus}`)
+            // 播放对应状态的动画
+            this.animation.fadeIn(currentStatus, 0.3, -1)
+        })
+    }
     /**
      * 按键按下
      * @param e 
@@ -172,11 +200,10 @@ export class PLayer extends Component {
         // 左右键
         if ([KeyCode.ARROW_RIGHT, KeyCode.ARROW_LEFT].includes(e.keyCode)) {
             // 角色在休息、走的状态，需要转身
-            if ([PlayState.RELAX, PlayState.WALK, PlayState.JUMP1].includes(this.playState)) {
+            if ([PlayState.WAIT, PlayState.WALK, PlayState.JUMP1].includes(this.playState)) {
                 this.node.setScale((e.keyCode === KeyCode.ARROW_LEFT ? -1 : 1) * this.scale, this.node.scale.y, 1)
                 this.collider2D.apply()
             }
-            this.playState = PlayState.PUSH
             // 移动
             this.move(e.keyCode)
             // 上下键
@@ -195,7 +222,7 @@ export class PLayer extends Component {
                     //开始缓动
                     const op = this.node.getPosition()
                     let den = this.collider2D.density
-                    tween(this.node.position).to(1.25/2, v3(op.x, op.y + (-dir*18)), {
+                    tween(this.node.position).to(1.25 / 2, v3(op.x, op.y + (-dir * 18)), {
                         onUpdate: (target: Vec3) => {
                             this.node.position = target
                         },
@@ -205,7 +232,7 @@ export class PLayer extends Component {
                             this.curJoinNode = preNode
                             this.collider2D.density = den
                         },
-                        onStart:() => {
+                        onStart: () => {
                             this.collider2D.density = 0
                             this.playAnima()
                         }
@@ -224,14 +251,14 @@ export class PLayer extends Component {
             if (this.playState === PlayState.DRAG) {
                 // 移除手关节
                 this.socketNodes[0].getComponent(DistanceJoint2D)?.destroy()
-                this.playState = PlayState.RELAX
+                this.playState = PlayState.WAIT
                 this.playAnima()
                 return
             }
             // 跳跃
         } else if (e.keyCode === KeyCode.CTRL_LEFT) {
             // 放松、走、拉、推
-            if ([PlayState.RELAX, PlayState.WALK, PlayState.CORD, PlayState.PUSH].includes(this.playState)) {
+            if ([PlayState.WAIT, PlayState.WALK, PlayState.CORD, PlayState.PUSH].includes(this.playState)) {
                 // 拉绳中
                 if (this.playState === PlayState.CORD) {
                     // 移除手关节
@@ -313,7 +340,7 @@ export class PLayer extends Component {
         if (this.playState === PlayState.HURT) return
         // 停止行走后，马上切换休息动画
         if ([KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT].includes(e.keyCode) && this.playState === PlayState.WALK) {
-            this.playState = PlayState.RELAX
+            this.playState = PlayState.WAIT
             this.playAnima()
         }
     }
@@ -331,7 +358,7 @@ export class PLayer extends Component {
         let XF: number = FFlag * this.wakeV;
         // 动画状态切换
         // 角色如果正在休息或在走，切换 走 状态，执行 走 动画
-        if ([PlayState.RELAX, PlayState.WALK].includes(this.playState)) {
+        if ([PlayState.WAIT, PlayState.WALK].includes(this.playState)) {
             this.playState = PlayState.WALK
             this.playAnima()
             // 角色如果正在推或拖，执行 相应 动画，不切换状态
@@ -351,7 +378,7 @@ export class PLayer extends Component {
      * @param contact 
      */
     crawlBegin = (self: Collider2D, other: Collider2D, contact) => {
-        if (other.node.name === 'Crawl' && this.playState !== PlayState.CRAWL1) {
+        if (other.node.name === 'Crawl' && this.playState !== PlayState.CRAWL) {
             // 添加关节，将主角固定在原地
             const joint = this.node.addComponent(RelativeJoint2D)
             joint.enabled = false
@@ -368,7 +395,7 @@ export class PLayer extends Component {
             joint.enabled = true
             // 切换动画
             console.log(this.armature.getBone('身体').boneData)
-            this.playState = PlayState.CRAWL1
+            this.playState = PlayState.CRAWL
             this.playAnima()
             this.scheduleOnce(() => {
                 //设置爬的物体不受力
@@ -449,9 +476,9 @@ export class PLayer extends Component {
     endContact = (self: Collider2D, other: Collider2D) => {
         // 离开石头
         if (other.node.name === 'Ston1') {
-            this.playState = PlayState.RELAX
+            this.playState = PlayState.WAIT
             this.scheduleOnce(() => {
-                if (this.playState === PlayState.RELAX) {
+                if (this.playState === PlayState.WAIT) {
                     this.playAnima()
                 }
             }, 0.5)
@@ -512,56 +539,54 @@ export class PLayer extends Component {
      * 播放动画
      */
     playAnima = (name?: AnimationType) => {
-        this.animaCtrl.setValue('status',this.playState)
-        console.log(this.animaCtrl.getCurrentStateStatus(0))
-        // if (name) {
-        //     if (this.animation.isPlaying && this.animation.lastAnimationName === name) return;
-        //     const t = this.animation.play(name, 0)
-        //     // t.timeScale = 0.5
-        //     return
-        // }
-        // // 如果当前需要执行的动画，正在播放，不执行
-        // if (this.animation.isPlaying && this.animation.lastAnimationName === AnimationType[PlayState[this.playState]]) return;
-        // let temp: dragonBones.AnimationState;
-        // let fadeInT: number = 0;
-        // switch (this.playState) {
-        //     case PlayState.RELAX:
-        //         this.animation.fadeIn(AnimationType.RELAX, 0.2, 0) // 循环执行
-        //         break;
-        //     case PlayState.WALK:
-        //         fadeInT = this.animation.lastAnimationName === AnimationType.WALK ? 0 : 0.2;
-        //         temp = this.animation.fadeIn(AnimationType.WALK, fadeInT, 1) // 执行一次
-        //         temp.timeScale = 1.2
-        //         break;
-        //     case PlayState.DRAG:
-        //         if (this.animation.lastAnimationName !== AnimationType.DRAG) {
-        //             this.animation.fadeIn(AnimationType.DRAG, 0.5, 1)
-        //         } else {
-        //             this.animation.fadeIn(AnimationType.DRAG, -1, 1)
-        //         }
-        //         break;
-        //     case PlayState.JUMP1:
-        //         temp = this.animation.fadeIn(AnimationType.JUMP1, 0, 1)
-        //         temp.timeScale = 1.2
-        //         break;
-        //     case PlayState.CRAWL1:
-        //         this.animation.fadeIn(AnimationType.CRAWL1, 0.2, 1)
-        //         break;
-        //     case PlayState.CORD:
-        //         let fadeInTime = this.animation.lastAnimationName === AnimationType.CORD ? 0 : 0.2;
-        //         this.animation.fadeIn(AnimationType.CORD, fadeInTime, 1)
-        //         break;
-        //     case PlayState.PUSH:
-        //         let fadeInTime1 = this.animation.lastAnimationName === AnimationType.PUSH ? 0 : 0.2;
-        //         temp = this.animation.fadeIn(AnimationType.PUSH, fadeInTime1, 1)
-        //         break;
-        //     case PlayState.HURT:
-        //         temp = this.animation.fadeIn(AnimationType.HURT, -1, 1)
-        //         temp.timeScale = 0.7
-        //         break;
-        //     default:
-        //         break;
-        // }
+        if (name) {
+            if (this.animation.isPlaying && this.animation.lastAnimationName === name) return;
+            const t = this.animation.play(name, 0)
+            // t.timeScale = 0.5
+            return
+        }
+        // 如果当前需要执行的动画，正在播放，不执行
+        if (this.animation.isPlaying && this.animation.lastAnimationName === AnimationType[PlayState[this.playState]]) return;
+        let temp: dragonBones.AnimationState;
+        let fadeInT: number = 0;
+        switch (this.playState) {
+            case PlayState.WAIT:
+                this.animation.fadeIn(AnimationType.WAIT, 0.2, 0) // 循环执行
+                break;
+            case PlayState.WALK:
+                fadeInT = this.animation.lastAnimationName === AnimationType.WALK ? 0 : 0.2;
+                temp = this.animation.fadeIn(AnimationType.WALK, fadeInT, 1) // 执行一次
+                temp.timeScale = 1.2
+                break;
+            case PlayState.DRAG:
+                if (this.animation.lastAnimationName !== AnimationType.DRAG) {
+                    this.animation.fadeIn(AnimationType.DRAG, 0.5, 1)
+                } else {
+                    this.animation.fadeIn(AnimationType.DRAG, -1, 1)
+                }
+                break;
+            case PlayState.JUMP1:
+                temp = this.animation.fadeIn(AnimationType.JUMP1, 0, 1)
+                temp.timeScale = 1.2
+                break;
+            case PlayState.CRAWL:
+                this.animation.fadeIn(AnimationType.CRAWL, 0.2, 1)
+                break;
+            case PlayState.CORD:
+                let fadeInTime = this.animation.lastAnimationName === AnimationType.CORD ? 0 : 0.2;
+                this.animation.fadeIn(AnimationType.CORD, fadeInTime, 1)
+                break;
+            case PlayState.PUSH:
+                let fadeInTime1 = this.animation.lastAnimationName === AnimationType.PUSH ? 0 : 0.2;
+                temp = this.animation.fadeIn(AnimationType.PUSH, fadeInTime1, 1)
+                break;
+            case PlayState.HURT:
+                temp = this.animation.fadeIn(AnimationType.HURT, -1, 1)
+                temp.timeScale = 0.7
+                break;
+            default:
+                break;
+        }
     }
     protected onDestroy(): void {
         input.off(Input.EventType.KEY_DOWN, this.handDown, false);
@@ -766,7 +791,7 @@ export class PLayer extends Component {
         if (y < -640 && this.playState !== PlayState.HURT) {
             this.idie()
         }
-        if (this.boneRigParent && ([PlayState.HURT, PlayState.TEST].includes(this.playState))) {
+        if (this.boneRigParent && ([PlayState.HURT].includes(this.playState))) {
             this.setBoneTransform()
         }
     }
