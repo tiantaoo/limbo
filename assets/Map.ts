@@ -1,4 +1,4 @@
-import { _decorator, BoxCollider2D, Collider2D, Component, Contact2DType, director, EPhysics2DDrawFlags, find, Node, PhysicsSystem2D, PolygonCollider2D, RigidBody2D, size, TiledMap, v2 } from 'cc';
+import { _decorator, BoxCollider2D, Component, director, EPhysics2DDrawFlags, find, Node, PhysicsSystem2D, PolygonCollider2D, size, TiledMap, v2 } from 'cc';
 import { Fluid } from './Fluid';
 const { ccclass, property } = _decorator;
 // PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape

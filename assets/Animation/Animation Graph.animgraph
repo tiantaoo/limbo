@@ -12,25 +12,25 @@
     ],
     "_variables": {
       "left": {
-        "__id__": 152
+        "__id__": 142
       },
       "right": {
-        "__id__": 153
+        "__id__": 143
       },
       "up": {
-        "__id__": 154
+        "__id__": 144
       },
       "down": {
-        "__id__": 155
+        "__id__": 145
       },
       "isWalk": {
-        "__id__": 156
+        "__id__": 146
       },
       "jump": {
-        "__id__": 157
+        "__id__": 147
       },
       "wait": {
-        "__id__": 158
+        "__id__": 148
       }
     }
   },
@@ -98,67 +98,67 @@
         "__id__": 45
       },
       {
-        "__id__": 48
+        "__id__": 46
       },
       {
-        "__id__": 55
+        "__id__": 51
       },
       {
-        "__id__": 60
+        "__id__": 56
       },
       {
-        "__id__": 65
+        "__id__": 61
       },
       {
-        "__id__": 70
+        "__id__": 66
       },
       {
-        "__id__": 75
+        "__id__": 71
       },
       {
-        "__id__": 80
+        "__id__": 76
       },
       {
-        "__id__": 85
+        "__id__": 81
       },
       {
-        "__id__": 90
+        "__id__": 86
       },
       {
-        "__id__": 95
+        "__id__": 91
       },
       {
-        "__id__": 100
+        "__id__": 96
       },
       {
-        "__id__": 105
+        "__id__": 101
       },
       {
-        "__id__": 108
+        "__id__": 104
       },
       {
-        "__id__": 113
+        "__id__": 109
       },
       {
-        "__id__": 118
+        "__id__": 112
       },
       {
-        "__id__": 121
+        "__id__": 115
       },
       {
-        "__id__": 125
+        "__id__": 119
       },
       {
-        "__id__": 130
+        "__id__": 124
       },
       {
-        "__id__": 135
+        "__id__": 129
       },
       {
-        "__id__": 140
+        "__id__": 132
       },
       {
-        "__id__": 145
+        "__id__": 137
       }
     ],
     "_entryState": {
@@ -612,25 +612,7 @@
     "to": {
       "__id__": 6
     },
-    "conditions": [
-      {
-        "__id__": 46
-      }
-    ]
-  },
-  {
-    "__type__": "cc.animation.BinaryCondition",
-    "operator": 0,
-    "lhs": 0,
-    "lhsBinding": {
-      "__id__": 47
-    },
-    "rhs": 0
-  },
-  {
-    "__type__": "cc.animation.TCVariableBinding",
-    "type": 3,
-    "variableName": "status"
+    "conditions": []
   },
   {
     "__type__": "cc.animation.AnimationTransition",
@@ -643,19 +625,16 @@
     },
     "conditions": [
       {
-        "__id__": 49
-      },
-      {
-        "__id__": 51
+        "__id__": 47
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 53
+      "__id__": 49
     },
     "endEventBinding": {
-      "__id__": 54
+      "__id__": 50
     },
     "duration": 0,
     "relativeDuration": false,
@@ -666,19 +645,7 @@
     "__type__": "cc.animation.UnaryCondition",
     "operator": 0,
     "operand": {
-      "__id__": 50
-    }
-  },
-  {
-    "__type__": "cc.animation.BindableBoolean",
-    "variable": "isWalk",
-    "value": false
-  },
-  {
-    "__type__": "cc.animation.UnaryCondition",
-    "operator": 0,
-    "operand": {
-      "__id__": 52
+      "__id__": 48
     }
   },
   {
@@ -705,16 +672,16 @@
     },
     "conditions": [
       {
-        "__id__": 56
+        "__id__": 52
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 58
+      "__id__": 54
     },
     "endEventBinding": {
-      "__id__": 59
+      "__id__": 55
     },
     "duration": 0,
     "relativeDuration": false,
@@ -726,7 +693,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 57
+      "__id__": 53
     },
     "rhs": 10
   },
@@ -754,16 +721,16 @@
     },
     "conditions": [
       {
-        "__id__": 61
+        "__id__": 57
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 63
+      "__id__": 59
     },
     "endEventBinding": {
-      "__id__": 64
+      "__id__": 60
     },
     "duration": 0,
     "relativeDuration": false,
@@ -775,7 +742,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 62
+      "__id__": 58
     },
     "rhs": 3
   },
@@ -803,16 +770,16 @@
     },
     "conditions": [
       {
-        "__id__": 66
+        "__id__": 62
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 68
+      "__id__": 64
     },
     "endEventBinding": {
-      "__id__": 69
+      "__id__": 65
     },
     "duration": 0,
     "relativeDuration": false,
@@ -823,7 +790,7 @@
     "__type__": "cc.animation.UnaryCondition",
     "operator": 0,
     "operand": {
-      "__id__": 67
+      "__id__": 63
     }
   },
   {
@@ -850,16 +817,16 @@
     },
     "conditions": [
       {
-        "__id__": 71
+        "__id__": 67
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 73
+      "__id__": 69
     },
     "endEventBinding": {
-      "__id__": 74
+      "__id__": 70
     },
     "duration": 0,
     "relativeDuration": false,
@@ -871,7 +838,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 72
+      "__id__": 68
     },
     "rhs": 6
   },
@@ -899,16 +866,16 @@
     },
     "conditions": [
       {
-        "__id__": 76
+        "__id__": 72
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 78
+      "__id__": 74
     },
     "endEventBinding": {
-      "__id__": 79
+      "__id__": 75
     },
     "duration": 0,
     "relativeDuration": false,
@@ -916,18 +883,16 @@
     "_exitCondition": 1
   },
   {
-    "__type__": "cc.animation.BinaryCondition",
+    "__type__": "cc.animation.UnaryCondition",
     "operator": 0,
-    "lhs": 0,
-    "lhsBinding": {
-      "__id__": 77
-    },
-    "rhs": 8
+    "operand": {
+      "__id__": 73
+    }
   },
   {
-    "__type__": "cc.animation.TCVariableBinding",
-    "type": 3,
-    "variableName": "status"
+    "__type__": "cc.animation.BindableBoolean",
+    "variable": "",
+    "value": false
   },
   {
     "__type__": "cc.animation.AnimationGraphEventBinding",
@@ -948,16 +913,16 @@
     },
     "conditions": [
       {
-        "__id__": 81
+        "__id__": 77
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 83
+      "__id__": 79
     },
     "endEventBinding": {
-      "__id__": 84
+      "__id__": 80
     },
     "duration": 0,
     "relativeDuration": false,
@@ -969,7 +934,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 82
+      "__id__": 78
     },
     "rhs": 7
   },
@@ -997,16 +962,16 @@
     },
     "conditions": [
       {
-        "__id__": 86
+        "__id__": 82
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 88
+      "__id__": 84
     },
     "endEventBinding": {
-      "__id__": 89
+      "__id__": 85
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1018,7 +983,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 87
+      "__id__": 83
     },
     "rhs": 7
   },
@@ -1046,16 +1011,16 @@
     },
     "conditions": [
       {
-        "__id__": 91
+        "__id__": 87
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 93
+      "__id__": 89
     },
     "endEventBinding": {
-      "__id__": 94
+      "__id__": 90
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1066,7 +1031,7 @@
     "__type__": "cc.animation.UnaryCondition",
     "operator": 0,
     "operand": {
-      "__id__": 92
+      "__id__": 88
     }
   },
   {
@@ -1093,16 +1058,16 @@
     },
     "conditions": [
       {
-        "__id__": 96
+        "__id__": 92
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 98
+      "__id__": 94
     },
     "endEventBinding": {
-      "__id__": 99
+      "__id__": 95
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1114,7 +1079,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 97
+      "__id__": 93
     },
     "rhs": 0
   },
@@ -1142,16 +1107,16 @@
     },
     "conditions": [
       {
-        "__id__": 101
+        "__id__": 97
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 103
+      "__id__": 99
     },
     "endEventBinding": {
-      "__id__": 104
+      "__id__": 100
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1163,7 +1128,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 102
+      "__id__": 98
     },
     "rhs": 0
   },
@@ -1193,10 +1158,10 @@
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 106
+      "__id__": 102
     },
     "endEventBinding": {
-      "__id__": 107
+      "__id__": 103
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1222,16 +1187,16 @@
     },
     "conditions": [
       {
-        "__id__": 109
+        "__id__": 105
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 111
+      "__id__": 107
     },
     "endEventBinding": {
-      "__id__": 112
+      "__id__": 108
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1242,7 +1207,7 @@
     "__type__": "cc.animation.UnaryCondition",
     "operator": 0,
     "operand": {
-      "__id__": 110
+      "__id__": 106
     }
   },
   {
@@ -1267,37 +1232,19 @@
     "to": {
       "__id__": 21
     },
-    "conditions": [
-      {
-        "__id__": 114
-      }
-    ],
+    "conditions": [],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 116
+      "__id__": 110
     },
     "endEventBinding": {
-      "__id__": 117
+      "__id__": 111
     },
     "duration": 0,
     "relativeDuration": false,
     "exitConditionEnabled": false,
     "_exitCondition": 1
-  },
-  {
-    "__type__": "cc.animation.BinaryCondition",
-    "operator": 0,
-    "lhs": 0,
-    "lhsBinding": {
-      "__id__": 115
-    },
-    "rhs": 4
-  },
-  {
-    "__type__": "cc.animation.TCVariableBinding",
-    "type": 3,
-    "variableName": "status"
   },
   {
     "__type__": "cc.animation.AnimationGraphEventBinding",
@@ -1320,10 +1267,10 @@
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 119
+      "__id__": 113
     },
     "endEventBinding": {
-      "__id__": 120
+      "__id__": 114
     },
     "duration": 0,
     "relativeDuration": true,
@@ -1349,16 +1296,16 @@
     },
     "conditions": [
       {
-        "__id__": 122
+        "__id__": 116
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 123
+      "__id__": 117
     },
     "endEventBinding": {
-      "__id__": 124
+      "__id__": 118
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1388,16 +1335,16 @@
     },
     "conditions": [
       {
-        "__id__": 126
+        "__id__": 120
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 128
+      "__id__": 122
     },
     "endEventBinding": {
-      "__id__": 129
+      "__id__": 123
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1409,7 +1356,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 127
+      "__id__": 121
     },
     "rhs": 2
   },
@@ -1437,16 +1384,16 @@
     },
     "conditions": [
       {
-        "__id__": 131
+        "__id__": 125
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 133
+      "__id__": 127
     },
     "endEventBinding": {
-      "__id__": 134
+      "__id__": 128
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1458,7 +1405,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 132
+      "__id__": 126
     },
     "rhs": 2
   },
@@ -1484,37 +1431,19 @@
     "to": {
       "__id__": 6
     },
-    "conditions": [
-      {
-        "__id__": 136
-      }
-    ],
+    "conditions": [],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 138
+      "__id__": 130
     },
     "endEventBinding": {
-      "__id__": 139
+      "__id__": 131
     },
     "duration": 0,
     "relativeDuration": false,
     "exitConditionEnabled": false,
     "_exitCondition": 1
-  },
-  {
-    "__type__": "cc.animation.BinaryCondition",
-    "operator": 0,
-    "lhs": 0,
-    "lhsBinding": {
-      "__id__": 137
-    },
-    "rhs": 0
-  },
-  {
-    "__type__": "cc.animation.TCVariableBinding",
-    "type": 3,
-    "variableName": "status"
   },
   {
     "__type__": "cc.animation.AnimationGraphEventBinding",
@@ -1535,16 +1464,16 @@
     },
     "conditions": [
       {
-        "__id__": 141
+        "__id__": 133
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 143
+      "__id__": 135
     },
     "endEventBinding": {
-      "__id__": 144
+      "__id__": 136
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1556,7 +1485,7 @@
     "operator": 0,
     "lhs": 0,
     "lhsBinding": {
-      "__id__": 142
+      "__id__": 134
     },
     "rhs": 6
   },
@@ -1584,19 +1513,16 @@
     },
     "conditions": [
       {
-        "__id__": 146
-      },
-      {
-        "__id__": 148
+        "__id__": 138
       }
     ],
     "destinationStart": 0,
     "relativeDestinationStart": false,
     "startEventBinding": {
-      "__id__": 150
+      "__id__": 140
     },
     "endEventBinding": {
-      "__id__": 151
+      "__id__": 141
     },
     "duration": 0,
     "relativeDuration": false,
@@ -1607,19 +1533,7 @@
     "__type__": "cc.animation.UnaryCondition",
     "operator": 0,
     "operand": {
-      "__id__": 147
-    }
-  },
-  {
-    "__type__": "cc.animation.BindableBoolean",
-    "variable": "isWalk",
-    "value": false
-  },
-  {
-    "__type__": "cc.animation.UnaryCondition",
-    "operator": 0,
-    "operand": {
-      "__id__": 149
+      "__id__": 139
     }
   },
   {

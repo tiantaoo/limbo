@@ -50,12 +50,12 @@
       }
     ],
     "_prefab": {
-      "__id__": 46
+      "__id__": 48
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 1107.954,
-      "y": -173.101,
+      "x": -69.112,
+      "y": -278.566,
       "z": 0
     },
     "_lrot": {
@@ -268,8 +268,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 16.265499084472644,
-      "y": -79.70969961853027,
+      "x": -18.69450000000001,
+      "y": -59.8097,
       "z": 0
     },
     "_lrot": {
@@ -395,7 +395,7 @@
     "node": {
       "__id__": 10
     },
-    "_enabled": false,
+    "_enabled": true,
     "__prefab": {
       "__id__": 18
     },
@@ -468,16 +468,16 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -0.9224053933076837,
-      "y": 17.810268552819466,
+      "x": -4.1847040709673005,
+      "y": 16.241616560122424,
       "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
       "x": 0,
       "y": 0,
-      "z": 0.0669243333539186,
-      "w": 0.9977580536408281
+      "z": 0.057256484424588264,
+      "w": 0.9983595018786253
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -491,7 +491,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": 7.674699975393258
+      "z": 6.564699999999981
     },
     "_id": ""
   },
@@ -954,12 +954,33 @@
     "_playTimes": -1,
     "_debugBones": false,
     "_enableBatch": false,
-    "_sockets": [],
+    "_sockets": [
+      {
+        "__id__": 46
+      },
+      {
+        "__id__": 47
+      }
+    ],
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "8e5KFowddBZLuGMNaucFm1"
+  },
+  {
+    "__type__": "dragonBones.ArmatureDisplay.DragonBoneSocket",
+    "path": "root/center/身体/center_point",
+    "target": {
+      "__id__": 20
+    }
+  },
+  {
+    "__type__": "dragonBones.ArmatureDisplay.DragonBoneSocket",
+    "path": "root/ik_left_hand",
+    "target": {
+      "__id__": 10
+    }
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -970,6 +991,7 @@
       "__id__": 0
     },
     "fileId": "6cy5It5f5FRLMJN1+HUqwp",
+    "instance": null,
     "targetOverrides": []
   }
 ]
