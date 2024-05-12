@@ -36,7 +36,7 @@ export default class BaseState{
     /**
      * 开始播放
      */
-    protected play(from: PlaterState,inputType:InputType) {
+    play(from: PlaterState,inputType:InputType) {
         const [,fadeInTimes,playTimes] = transferMap[from][inputType]||[]
         this.animation.fadeIn(stateToAnimation[this.state], fadeInTimes, playTimes)
     }

@@ -40,6 +40,9 @@ export default class FSMManger {
     }
     // 修改状态
     changeState(nextState: PlaterState,type: InputType) {
+        if(this.currentStateId === nextState){
+            return this.stateList[this.currentStateId].play(this.currentStateId,InputType.END)
+        }
         // 当前状态退出
         if (this.stateList[this.currentStateId]) {
             this.stateList[this.currentStateId].onStateExit()

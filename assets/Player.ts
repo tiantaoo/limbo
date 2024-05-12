@@ -66,20 +66,21 @@ export class PLayer extends Component {
         this.fsm.on(OutputType.ANIMATION_IN, state => {
             if (state === PlaterState.crawl) {
                 this.rig2D.type = ERigidBody2DType.Static
-            }else if(state === PlaterState.wait){
+            } else if (state === PlaterState.wait) {
                 // 移除手上的关节
                 this.socketNodes[0].getComponent(DistanceJoint2D)?.destroy()
-            }else if(state === PlaterState.jump){
-                const R1 = this.node.getChildByName('R1')
-                this.removeJoint(R1, 'hands')
+            } else if (state === PlaterState.jump) {
+                // 开始跳的时候需要开启R1，可以连接其他节点
+                this.node.getChildByName('R1').active = true
                 this.scheduleOnce(() => {
                     this.rig2D.applyLinearImpulseToCenter(v2(this.node.scale.x * this.wakeV, this.jumpF), true)
                 }, 0.42)
+            } else if (state === PlaterState.jump2) {
+                this.removeJoint(this.node.getChildByName('R1'), 'hands')
             }
         })
         // 动画开始淡出
-        this.fsm.on(OutputType.ANIMATION_FADEOUT_IN, state => {
-        })
+        this.fsm.on(OutputType.ANIMATION_FADEOUT_IN, state => { })
         // 动画淡入完成
         this.fsm.on(OutputType.ANIMATION_FADEIN_COMPLETE, state => {
             if (state === PlaterState.drag) {
@@ -90,11 +91,8 @@ export class PLayer extends Component {
         this.fsm.on(OutputType.ANIMATION_COMPLETE, state => {
             if (state === PlaterState.crawl) {
                 this.handleCrawlComplete()
-            }else if(state === PlaterState.jump){
-                this.node.getChildByName('R1').active = true
-            }
+            } else if (state === PlaterState.jump) {}
         })
-
     }
     start() {
         this.initSocketNode()
@@ -112,6 +110,41 @@ export class PLayer extends Component {
             // 监听所有可以碰撞挂点的碰撞事件
             node.getComponent(CircleCollider2D).on(Contact2DType.BEGIN_CONTACT, this.crawlBegin)
         })
+    }
+    /**
+     * 拉绳动画开始
+     */
+    handleCordStart = (e:EventKeyboard) => {
+        // 上下移动
+        // 找到下一个关节
+        const R1 = this.node.getChildByName('R1')
+        const dir = e.keyCode === KeyCode.ARROW_UP ? -1 : 1;
+        const curIndex = this.curJoinNode.no
+        const preNode: RopeNode = this.curJoinNode.parent.children.find(item => item['no'] === (curIndex + dir))
+        const joint = R1.getComponents(Joint2D).find(item => item.name === 'hands')
+        joint.enabled = false;
+        if (preNode) {
+            //开始缓动
+            const op = this.node.getPosition()
+            let den = this.collider2D.density
+            tween(this.node.position).to(1.25 / 2, v3(op.x, op.y + (-dir * 18)), {
+                onUpdate: (target: Vec3) => {
+                    this.node.position = target
+                },
+                onComplete: () => {
+                    joint.connectedBody = preNode.getComponent(RigidBody2D)
+                    joint.enabled = true;
+                    this.curJoinNode = preNode
+                    this.collider2D.density = den
+                },
+                onStart: () => {
+                    this.collider2D.density = 0
+
+                }
+            }).start()
+        } else {
+            this.removeJoint(R1, 'hands')
+        }
     }
     handleCrawlComplete = () => {
         // 计算该次动画位移的距离，将节点缓动到新位置
@@ -146,7 +179,7 @@ export class PLayer extends Component {
         const dir = isPlayerToNode ? -1 : 1
         // 添加关节，将主角和捕兽夹绑定
         const joint1 = this.socketNodes[0].getComponent(DistanceJoint2D)
-        const joint = joint1?joint1:this.socketNodes[0].addComponent(DistanceJoint2D)
+        const joint = joint1 ? joint1 : this.socketNodes[0].addComponent(DistanceJoint2D)
         joint.enabled = false
         joint.connectedBody = _node.getComponent(RigidBody2D)
         joint.collideConnected = true
@@ -155,7 +188,7 @@ export class PLayer extends Component {
         joint.maxLength = 1
         joint.autoCalcDistance = false
         joint.enabled = true
-        this.rig2D.linearVelocity = v2(dir*4, 0)
+        this.rig2D.linearVelocity = v2(dir * 4, 0)
     }
 
     /**
@@ -169,7 +202,7 @@ export class PLayer extends Component {
         if ([KeyCode.ARROW_RIGHT, KeyCode.ARROW_LEFT].includes(e.keyCode)) {
             // 触发状态机中输入事件
             this.fsm.onInput(e.keyCode as unknown as InputType)
-            // 移动
+            // 左右移动
             this.move(e.keyCode)
             // 角色在休息、走的状态，需要转身
             if ([PlaterState.wait, PlaterState.walk, PlaterState.jump].includes(this.fsm.currentStateId)) {
@@ -178,47 +211,11 @@ export class PLayer extends Component {
             }
             // 上下键
         } else if (e.keyCode === KeyCode.ARROW_UP || e.keyCode === KeyCode.ARROW_DOWN) {
-            // 拉绳中
-            // if (this.playState === PlayState.CORD) {
-            //     // 上下移动
-            //     // 找到下一个关节
-            //     const R1 = this.node.getChildByName('R1')
-            //     const dir = e.keyCode === KeyCode.ARROW_UP ? -1 : 1;
-            //     const curIndex = this.curJoinNode.no
-            //     const preNode: RopeNode = this.curJoinNode.parent.children.find(item => item['no'] === (curIndex + dir))
-            //     const joint = R1.getComponents(Joint2D).find(item => item.name === 'hands')
-            //     joint.enabled = false;
-            //     if (preNode) {
-            //         //开始缓动
-            //         const op = this.node.getPosition()
-            //         let den = this.collider2D.density
-            //         tween(this.node.position).to(1.25 / 2, v3(op.x, op.y + (-dir * 18)), {
-            //             onUpdate: (target: Vec3) => {
-            //                 this.node.position = target
-            //             },
-            //             onComplete: () => {
-            //                 joint.connectedBody = preNode.getComponent(RigidBody2D)
-            //                 joint.enabled = true;
-            //                 this.curJoinNode = preNode
-            //                 this.collider2D.density = den
-            //             },
-            //             onStart: () => {
-            //                 this.collider2D.density = 0
-
-            //             }
-            //         }).start()
-            //         // 状态不切换，直接播放爬绳子的动画
-            //     } else {
-            //         this.removeJoint(R1, 'hands')
-            //         // 禁用R1节点，防止在跳下的过程中再次连接绳子
-            //         R1.active = false
-            //         this.playState = PlayState.JUMP1
-
-            //     }
-            //     return
-            // }
-            // 拖
             this.fsm.onInput(e.keyCode as unknown as InputType)
+            if([PlaterState.cord].includes(this.fsm.currentStateId)){
+                this.handleCordStart(e)
+            }
+            // 拉绳中
             // 跳跃
         } else if (e.keyCode === KeyCode.CTRL_LEFT) {
             // 触发状态机中输入事件
@@ -229,14 +226,14 @@ export class PLayer extends Component {
             if (this.nearNodes.length !== 0) {
                 // 查找附近是否存在捕兽夹
                 const _node = this.nearNodes.find(item => item.name === 'Ju')
-                if(_node){
+                if (_node) {
                     const isPlayerToNode: boolean = this.node.worldPosition.x < _node.worldPosition.x
                     const dir = isPlayerToNode ? -1 : 1
                     // 方向是:人->捕兽夹
                     if (isPlayerToNode && this.node.scale.x < 0) {
                         // 人朝左，需要转向
                         this.node.setScale(this.scale, this.node.scale.y, 1)
-                    } else if (!isPlayerToNode && this.node.scale.x > 0){
+                    } else if (!isPlayerToNode && this.node.scale.x > 0) {
                         // 人朝右，需要转向
                         this.node.setScale(dir * this.scale, this.node.scale.y, 1)
                     }
@@ -244,7 +241,7 @@ export class PLayer extends Component {
                     // 触发状态机中输入事件
                     this.fsm.onInput(e.keyCode as unknown as InputType)
                 }
-                
+
             }
         }
     }
@@ -278,7 +275,6 @@ export class PLayer extends Component {
         }[dirCode]
         // 横向力，方向*力
         let XF: number = FFlag * this.wakeV;
-        console.log(XF)
         this.rig2D.linearVelocity = v2(XF, this.rig2D.linearVelocity.y)
     }
     /**
@@ -323,7 +319,6 @@ export class PLayer extends Component {
                 this.fsm.onInput(InputType.CORD)
                 // 角色R1节点没有绑定绳子时、可以绑定
                 const R1 = self.node.getChildByName('R1')
-                console.log(R1)
                 if (R1.active && !R1.getComponents(Joint2D).find(item => item.name === 'hands')) {
                     // 增加手关节，绑定绳子
                     console.log('连接')
@@ -412,6 +407,7 @@ export class PLayer extends Component {
     removeJoint = (self: Node, jointName: string) => {
         self.getComponents(FixedJoint2D).find(item => item.name === jointName)?.destroy()
         this.curJoinNode = null
+        self.active = false
     }
 
 

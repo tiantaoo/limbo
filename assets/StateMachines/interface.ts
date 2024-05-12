@@ -103,7 +103,6 @@ export const transferMap = {
         [InputType.END]:[PlaterState.wait,0.3,0],
     },
     [PlaterState.jump2]:{
-        [InputType.CRAWL]:[PlaterState.crawl,0.3,1],
         [InputType.END]:[PlaterState.wait,0.3,0],
     },
     [PlaterState.crawl]:{
