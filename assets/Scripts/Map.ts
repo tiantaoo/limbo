@@ -1,7 +1,7 @@
 import { _decorator, BoxCollider2D, Component, director, EPhysics2DDrawFlags, find, Node, PhysicsSystem2D, PolygonCollider2D, size, TiledMap, v2 } from 'cc';
 import { Fluid } from './Fluid';
 const { ccclass, property } = _decorator;
-// PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Shape
+PhysicsSystem2D.instance.debugDrawFlags = EPhysics2DDrawFlags.Joint
 
 @ccclass('Map')
 export class Map extends Component {

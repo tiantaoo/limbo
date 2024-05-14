@@ -1,27 +1,25 @@
-import { dragonBones, EventTarget, Node } from "cc"
+import { dragonBones, Node } from "cc"
 import BaseState from "./BaseState"
-import { InputType, OutputFn, OutputType, PlaterState, stateClassList, transferMap } from "./interface"
+import { InputType, OutputFn, OutputType, PlaterState, stateClassList } from "./interface"
 
 export default class FSMManger {
     // 状态集合
     stateList: BaseState[] = []
-    // 当前状态id
-    currentStateId: number = -1
+    // 当前状态
+    currentState: number = -1
     // 动画组件
     armatureDisplay: dragonBones.ArmatureDisplay
     // 节点对象
     node: Node
     private eventList = {}
 
-    // 事件
-    eventTarget: EventTarget
     constructor(node: Node) {
         this.node = node;
         this.armatureDisplay = this.node.getComponent(dragonBones.ArmatureDisplay)
-        stateClassList.forEach((item, index) => {
-            this.stateList.push(new stateClassList[index](this.armatureDisplay))
-        })
         this.init()
+        stateClassList.forEach((item, index) => {
+            this.stateList.push(new stateClassList[index](node,this))
+        })
     }
     private init(){
         this.armatureDisplay.on(dragonBones.EventObject.FADE_IN,this.animationStatr,this)
@@ -29,57 +27,54 @@ export default class FSMManger {
         this.armatureDisplay.on(dragonBones.EventObject.FADE_IN_COMPLETE,this.animationFadeInComplete,this)
         this.armatureDisplay.on(dragonBones.EventObject.FADE_OUT,this.animationFadeOutStart,this)
     }
+    private destroy(){
+        this.armatureDisplay.off(dragonBones.EventObject.FADE_IN,this.animationStatr,this)
+        this.armatureDisplay.off(dragonBones.EventObject.COMPLETE,this.animationEnd,this)
+        this.armatureDisplay.off(dragonBones.EventObject.FADE_IN_COMPLETE,this.animationFadeInComplete,this)
+        this.armatureDisplay.off(dragonBones.EventObject.FADE_OUT,this.animationFadeOutStart,this)
+    }
     // 监听输入
-    onInput(type: InputType) {
-        // 如果存在可响应操作
-        const transferObj = transferMap[this.currentStateId][type]
-        if (transferObj) {
-            // 转移到下一个状态
-            this.changeState(transferObj[0],type)
-        }
+    onInput(type: InputType,nodes:Node[]) {
+        // 当前状态接收输入事件
+        this.stateList[this.currentState].accept({
+            type,
+            nodes
+        })
+    }
+    // 进入某个状态
+    entry(state:PlaterState){
+        this.currentState = state
+        this.stateList[state].stateEntry(state)
     }
     // 修改状态
-    changeState(nextState: PlaterState,type: InputType) {
-        if(this.currentStateId === nextState){
-            return this.stateList[this.currentStateId].play(this.currentStateId,InputType.END)
-        }
-        // 当前状态退出
-        if (this.stateList[this.currentStateId]) {
-            this.stateList[this.currentStateId].onStateExit()
-        }
+    changeState(nextState: PlaterState) {
         // 进入下一个状态
-        this.stateList[nextState].onStateEntry(this.currentStateId,type)
-        console.log(`状态：${this.currentStateId}=>${nextState}`)
+        this.stateList[nextState].stateEntry(this.currentState)
+        this.stateList[this.currentState].stateExit()
         // 更新状态机当前状态
-        this.currentStateId = nextState
+        this.currentState = nextState
     }
     animationStatr(){
         // 调用子状态钩子
-        this.stateList[this.currentStateId].onAnimationStatr()
+        this.stateList[this.currentState].onAnimationStatr()
         // 通知角色更新
-        this.trigger(OutputType.ANIMATION_IN,this.currentStateId)
+        this.trigger(OutputType.ANIMATION_IN,this.currentState)
     }
     animationEnd(){
         // 调用子状态钩子
-        this.stateList[this.currentStateId].onAnimationEnd()
+        this.stateList[this.currentState].onAnimationEnd()
         // 通知角色更新
-        this.trigger(OutputType.ANIMATION_COMPLETE,this.currentStateId)
-        // 根据过度行为树，选择下一个状态
-        const transferObj = transferMap[this.currentStateId][InputType.END]
-        if (transferObj) {
-            // 转移到下一个状态
-            this.changeState(transferObj[0],InputType.END)
-        }
+        this.trigger(OutputType.ANIMATION_COMPLETE,this.currentState)
     }
     animationFadeInComplete(){
         // 调用子状态钩子
-        this.stateList[this.currentStateId].onAnimationFadeInComplete()
+        this.stateList[this.currentState].onAnimationFadeInComplete()
         // 通知角色更新
-        this.trigger(OutputType.ANIMATION_FADEIN_COMPLETE,this.currentStateId)
+        this.trigger(OutputType.ANIMATION_FADEIN_COMPLETE,this.currentState)
     }
     animationFadeOutStart(){
         // 通知角色更新
-        this.trigger(OutputType.ANIMATION_FADEOUT_IN,this.currentStateId)
+        this.trigger(OutputType.ANIMATION_FADEOUT_IN,this.currentState)
     }
     on(eventType: OutputType, fn?: OutputFn) {
         let fns = (this.eventList[eventType] = this.eventList[eventType] || []);

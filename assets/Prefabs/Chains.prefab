@@ -41,8 +41,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 1995.51,
-      "y": 317.749,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -225,7 +225,7 @@
     },
     "tag": 0,
     "_group": 16,
-    "_density": 30,
+    "_density": 15,
     "_sensor": true,
     "_friction": 0.2,
     "_restitution": 0,

@@ -24,7 +24,7 @@ export class CameraCtrl extends Component {
         const Ca = this.camera.getComponent(CameraComponent)
         this.lastCameraPos = this.node.getPosition()
         director.once('hurt', () => {
-            director.loadScene('Level2')
+            director.loadScene('Level1')
             // const mask = this.node.getChildByPath('UI/Mask').getComponent(Sprite)
             // const col = new Color(0, 0, 0, 255)
             // tween(mask.color)

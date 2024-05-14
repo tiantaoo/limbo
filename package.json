@@ -4,7 +4,5 @@
   "creator": {
     "version": "3.8.1"
   },
-  "dependencies": {
-    "xstate": "^5.13.0"
-  }
+  "dependencies": {}
 }
