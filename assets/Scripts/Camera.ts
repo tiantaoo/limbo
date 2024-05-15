@@ -1,4 +1,4 @@
-import { BoxCollider2D, Camera, CameraComponent, Component, ERigidBody2DType, HingeJoint2D, Node, RigidBody2D, Size, Sprite, SpriteFrame, UITransform, Vec3, _decorator, director, math, v2, v3 } from 'cc';
+import { Camera, CameraComponent, Component, Node, SpriteFrame, Vec3, _decorator, director, math, v3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('CameraCtrl')
@@ -19,32 +19,43 @@ export class CameraCtrl extends Component {
 
     @property({ type: SpriteFrame })
     spriteFrame: SpriteFrame;
+
+    lastFov:number
+    newFov:number
+    lastY:number
+    newY:number
     
     onLoad() {
         const Ca = this.camera.getComponent(CameraComponent)
         this.lastCameraPos = this.node.getPosition()
+        this.lastFov = this.newFov = Ca.fov
+        this.lastY = this.newY = 0
         director.once('hurt', () => {
             director.loadScene('Level1')
-            // const mask = this.node.getChildByPath('UI/Mask').getComponent(Sprite)
-            // const col = new Color(0, 0, 0, 255)
-            // tween(mask.color)
-            //     .to(1, col, {
-            //         onUpdate: function (target: Color) {
-            //             mask.color.set(target)
-            //         }
-            //         , onComplete:() => {
-            //             director.loadScene('Level2')
-            //         }
-            //     }).start();
+        })
+        director.on('update_fov', (data:{fov:number,y:number}) => {
+            this.newFov = data.fov
+            // 根据比例计算摄像机Y轴的位移，x轴一直跟着主角走的，不用管
+            this.newY = (data.fov - 64.25) * (360/64.25)
         })
     }
     update(deltaTime: number) {
         const { x, y } = this.player.position;
-        if(y<-640){
-            
-        }
         // 相机缓慢跟随主角移动
-        this.updateCamera(v3(this.lastCameraPos.x + (x - this.lastCameraPos.x) * deltaTime * 2, y));
+        const x1 = this.lastCameraPos.x + (x - this.lastCameraPos.x) * deltaTime * 2
+        this.updateCamera(v3(x1, y));
+        if(this.newY > this.lastY){
+            this.addY(deltaTime)
+        }
+        if(this.newY < this.lastY){
+            this.subY(deltaTime)
+        }  
+        if(this.newFov > this.lastFov){
+            this.addFov(deltaTime)
+        }
+        if(this.newFov < this.lastFov){
+            this.subFov(deltaTime)
+        }    
     }
     updateCamera(pos: Vec3) {
         this.lastCameraPos = pos
@@ -53,53 +64,36 @@ export class CameraCtrl extends Component {
         }
         this.camera.node.setPosition(pos.x, this.camera.node.position.y)
     }
-    test5 = () => {
-        this.test()
+    addFov(deltaTime){
+        this.camera.fov = this.camera.fov + (this.newFov - this.lastFov)* deltaTime
+        if(this.camera.fov>this.newFov){
+            this.lastFov = this.newFov
+        }
     }
-    test(){
-        const node1 = new Node('node1')
-        const sp1 = node1.addComponent(Sprite)
-        sp1.spriteFrame = this.spriteFrame
-        const ui1 = node1.addComponent(UITransform)
-        ui1.setContentSize(new Size(100,100))
-        ui1.setAnchorPoint(v2(0.5,0))
-        const rig1 = node1.addComponent(RigidBody2D)
-        rig1.type = ERigidBody2DType.Dynamic
-        const box1 = node1.addComponent(BoxCollider2D)
-        box1.group = 1 << 1
-        box1.size = new Size(ui1.width, ui1.height);
-        box1.offset = v2(0, ui1.height * 0.5*(ui1.anchorPoint.y === 0 ?1:-1))
-        node1.setPosition(v3(0,100))
-
-        const node2 = new Node('node2')
-        const sp2 = node2.addComponent(Sprite)
-        sp2.spriteFrame = this.spriteFrame
-        const ui2 = node2.addComponent(UITransform)
-        ui2.setAnchorPoint(v2(0.5,0))
-        ui2.setContentSize(new Size(100,100))
-        const rig2 = node2.addComponent(RigidBody2D)
-        rig2.type = ERigidBody2DType.Dynamic
-        const box2 = node2.addComponent(BoxCollider2D)
-        box2.group = 1 << 1
-        box2.size = new Size(ui2.width, ui2.height);
-        box2.offset = v2(0, ui2.height * 0.5*(ui2.anchorPoint.y === 0 ?1:-1))
-        node2.setPosition(v3(0,90))
-       
-
-        const joint1 = rig1.addComponent(HingeJoint2D)
-        joint1.enabled = false;
-        joint1.connectedBody = rig2
-        // joint1.maxForce = 10000
-        joint1.collideConnected = false
-        joint1.connectedAnchor = v2(0,100)
-        joint1.enabled = true;
-        
-        node1.parent = this.node
-        node2.parent = this.node
-
-
+    subFov(deltaTime){
+        this.camera.fov = this.camera.fov + (this.newFov - this.lastFov)* deltaTime
+        if(this.camera.fov<this.newFov){
+            this.lastFov = this.newFov
+        }
     }
-
+    addY(deltaTime){
+        const {x, y } = this.camera.node.getPosition();
+        const y1 = y + (this.newY - this.lastY) * deltaTime
+        this.camera.node.setPosition(x, y1)
+        if(y1 > this.newY){
+            this.lastY = this.newY
+            console.log('同步1',y1,this.newY)
+        }
+    }
+    subY(deltaTime){
+        const {x,y} = this.camera.node.getPosition();
+        const y1 = y + (this.newY - this.lastY) * deltaTime
+        this.camera.node.setPosition(x, y1)
+        if(y1 < this.newY){
+            this.lastY = this.newY
+            console.log('同步2',y1,this.newY)
+        }
+    }
 }
 
 

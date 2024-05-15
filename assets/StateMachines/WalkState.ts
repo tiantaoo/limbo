@@ -1,26 +1,27 @@
-import { BoxCollider2D, Node } from "cc"
-import { PLayer } from "../Scripts/Player"
+import { Node } from "cc"
 import BaseState from "./BaseState"
 import { InputType, PlaterState } from "./interface"
 
 // 行走状态
 export default class walkState extends BaseState {
     state: PlaterState = PlaterState.walk
+    timeScale = 2
     protected onStateEntry(preState: PlaterState): void {
         if ([PlaterState.walk].includes(preState)) {
-            this.play('walk', 0)
+            const t = this.play('run', 1)
+            t && (t.timeScale = this.timeScale)
         } else {
-            this.fadeIn('walk', 0.3, 1)
+            const t  = this.fadeIn('run', 0.2, 1)
+            t && (t.timeScale = this.timeScale)
         }
     }
     protected onAccept(data: { type?: InputType; nodes?: Node[]; }): void {
-        const scale = this.node.getComponent(PLayer).scale
-        const collider2D = this.node.getComponent(BoxCollider2D)
         switch (data.type) {
             case InputType.LEFT:
             case InputType.RIGHT:
                 this.turnAround(data.type)
-                this.play('walk', 0)
+                const t  = this.play('run', 1)
+                t && (t.timeScale = this.timeScale)
                 this.moveX(data.type)
                 break;
             case InputType.PUSH:
@@ -32,6 +33,9 @@ export default class walkState extends BaseState {
             case InputType.TOUCH:
                 this.findJuNodeAndJoint()
                 break;
+            case InputType.KEY_UP:
+                this.toWait()
+                break;
             case InputType.EXIT:
                 this.toWait()
                 break;
@@ -40,7 +44,7 @@ export default class walkState extends BaseState {
         }
     }
     public onAnimationEnd(): void {
-        this.toWait()
+        // this.toWait()
     }
 
 }

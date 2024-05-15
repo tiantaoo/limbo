@@ -77,13 +77,13 @@ export default class BaseState {
     /**
      * 开始播放
      */
-    play(name: string, playTimes: number) {
+    play(name: string, playTimes: number):dragonBones.AnimationState|null {
         if (this.animation.isPlaying && this.fsm.currentState === this.state) return
-        this.animation.play(name, playTimes)
+        return this.animation.play(name, playTimes)
     }
-    fadeIn(name: string, fadeInTimes: number, playTimes: number) {
-        if (this.animation.isPlaying && this.fsm.currentState === this.state) return
-        this.animation.fadeIn(name, fadeInTimes, playTimes)
+    fadeIn(name: string, fadeInTimes: number, playTimes: number):dragonBones.AnimationState|null {
+        if (this.animation.isPlaying && this.fsm.currentState === this.state) return null
+        return this.animation.fadeIn(name, fadeInTimes, playTimes)
     }
     // 转移到wait
     protected toWait() {
@@ -119,9 +119,9 @@ export default class BaseState {
      * 水平移动
      * @param type 
      */
-    protected moveX(type: InputType) {
+    protected moveX(type: InputType,flag?:1|-1) {
         // 横向力，方向*力
-        const dir = type === InputType.LEFT ? -1 : type === InputType.RIGHT ? 1 : 0
+        const dir = flag ? flag : type === InputType.LEFT ? -1 : type === InputType.RIGHT ? 1 : 0
         let XF: number = dir * this.playerCtrl.wakeV;
         this.rig2D.linearVelocity = v2(XF, this.rig2D.linearVelocity.y)
     }

@@ -58,12 +58,14 @@ export enum InputType {
     GAME_OVER = -6,// 游戏结束
     EXIT = -99, // 退出
 
+    KEY_UP = -98, 
     LEFT = KeyCode.ARROW_LEFT, // 左
     RIGHT = KeyCode.ARROW_RIGHT,// 右
     UP = KeyCode.ARROW_UP,// 上
     DOWN = KeyCode.ARROW_DOWN,// 下
     JUMP = KeyCode.CTRL_LEFT,// 左CTRL
     TOUCH = KeyCode.ALT_LEFT,// 左ALT
+    
 }
 // 状态机输出
 export enum OutputType{

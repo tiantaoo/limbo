@@ -1,4 +1,4 @@
-import { FixedJoint2D, Joint2D, Node, RigidBody2D, UITransform, Vec2, Vec3, tween, v2, v3 } from "cc"
+import { FixedJoint2D, Joint2D, Node, RigidBody2D, UITransform, Vec2, Vec3, director, tween, v2, v3 } from "cc"
 import { RopeNode } from "../Scripts/Rope"
 import BaseState from "./BaseState"
 import { InputType, PlaterState } from "./interface"
@@ -14,6 +14,7 @@ export default class CordState extends BaseState {
      * @param preState 
      */
     protected onStateEntry(preState: PlaterState): void {
+        director.emit('update_fov',{fov:50})
         // 得到触发拉绳动作的上一个状态接触的节点
         this.relevancyNodes = this.fsm.stateList[preState].relevancyNodes
         if (this.relevancyNodes.length !== 0) {
@@ -109,5 +110,8 @@ export default class CordState extends BaseState {
             joint.destroy()
             this.fsm.changeState(PlaterState.jump2)
         }
+    }
+    protected onStateExit(): void {
+        director.emit('update_fov',{fov:64.25})
     }
 }

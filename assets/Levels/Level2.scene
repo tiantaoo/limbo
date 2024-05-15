@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 65
+      "__id__": 67
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 66
+      "__id__": 68
     },
     "_id": "213389aa-2ffc-45c8-a3c0-b0548c03523c"
   },
@@ -86,17 +86,11 @@
         "__id__": 42
       },
       {
-        "__id__": 50
+        "__id__": 52
       }
     ],
     "_active": true,
     "_components": [
-      {
-        "__id__": 60
-      },
-      {
-        "__id__": 61
-      },
       {
         "__id__": 62
       },
@@ -105,6 +99,12 @@
       },
       {
         "__id__": 64
+      },
+      {
+        "__id__": 65
+      },
+      {
+        "__id__": 66
       }
     ],
     "_prefab": null,
@@ -1204,6 +1204,9 @@
       },
       {
         "__id__": 49
+      },
+      {
+        "__id__": 50
       }
     ],
     "removedComponents": []
@@ -1271,6 +1274,22 @@
     }
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 51
+    },
+    "propertyPath": [
+      "_density"
+    ],
+    "value": 1
+  },
+  {
+    "__type__": "cc.TargetInfo",
+    "localID": [
+      "deFSu6LJRFHpDryhSze1wd"
+    ]
+  },
+  {
     "__type__": "cc.Node",
     "_name": "CrawlPoint",
     "_objFlags": 0,
@@ -1280,13 +1299,13 @@
     },
     "_children": [
       {
-        "__id__": 51
+        "__id__": 53
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 59
+        "__id__": 61
       }
     ],
     "_prefab": null,
@@ -1323,17 +1342,17 @@
     "__type__": "cc.Node",
     "_objFlags": 0,
     "_parent": {
-      "__id__": 50
+      "__id__": 52
     },
     "_prefab": {
-      "__id__": 52
+      "__id__": 54
     },
     "__editorExtras__": {}
   },
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 51
+      "__id__": 53
     },
     "asset": {
       "__uuid__": "8439ab37-66f4-4f4e-953d-f8c38b912366",
@@ -1341,7 +1360,7 @@
     },
     "fileId": "35IkCQsypJXocTWKLEf5Ay",
     "instance": {
-      "__id__": 53
+      "__id__": 55
     },
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -1354,16 +1373,16 @@
     "mountedComponents": [],
     "propertyOverrides": [
       {
-        "__id__": 54
-      },
-      {
         "__id__": 56
       },
       {
-        "__id__": 57
+        "__id__": 58
       },
       {
-        "__id__": 58
+        "__id__": 59
+      },
+      {
+        "__id__": 60
       }
     ],
     "removedComponents": []
@@ -1371,7 +1390,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 55
+      "__id__": 57
     },
     "propertyPath": [
       "_name"
@@ -1387,7 +1406,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 55
+      "__id__": 57
     },
     "propertyPath": [
       "_lpos"
@@ -1402,7 +1421,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 55
+      "__id__": 57
     },
     "propertyPath": [
       "_lrot"
@@ -1418,7 +1437,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 55
+      "__id__": 57
     },
     "propertyPath": [
       "_euler"
@@ -1436,7 +1455,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 50
+      "__id__": 52
     },
     "_enabled": true,
     "__prefab": null,
@@ -1568,35 +1587,35 @@
         "__id__": 42
       },
       {
-        "__id__": 51
+        "__id__": 53
       }
     ]
   },
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 67
-    },
-    "shadows": {
-      "__id__": 68
-    },
-    "_skybox": {
       "__id__": 69
     },
-    "fog": {
+    "shadows": {
       "__id__": 70
     },
-    "octree": {
+    "_skybox": {
       "__id__": 71
     },
-    "skin": {
+    "fog": {
       "__id__": 72
     },
-    "lightProbeInfo": {
+    "octree": {
       "__id__": 73
     },
-    "postSettings": {
+    "skin": {
       "__id__": 74
+    },
+    "lightProbeInfo": {
+      "__id__": 75
+    },
+    "postSettings": {
+      "__id__": 76
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false

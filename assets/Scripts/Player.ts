@@ -1,4 +1,4 @@
-import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, ERigidBody2DType, EventKeyboard, FixedJoint2D, HingeJoint2D, Input, Node, PolygonCollider2D, RigidBody2D, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, misc, v2, v3 } from 'cc';
+import { BoxCollider2D, CircleCollider2D, Collider2D, Component, Contact2DType, ERigidBody2DType, EventKeyboard, FixedJoint2D, HingeJoint2D, Input, KeyCode, Node, PolygonCollider2D, RigidBody2D, UITransform, Vec2, Vec3, _decorator, director, dragonBones, input, misc, v2, v3 } from 'cc';
 import FSMManger from 'db://assets/StateMachines/FSMManger';
 import { InputType, PlaterState } from 'db://assets/StateMachines/interface';
 import { RopeNode } from './Rope';
@@ -39,7 +39,7 @@ export class PLayer extends Component {
     // 行走速度
     wakeV: number = 3
     // 跳跃力
-    jumpF: number = 10;
+    jumpF: number = 20;
     // 角色缩放
     scale: number = 0.1
     // 角色正在靠近的需要处理的节点
@@ -91,9 +91,9 @@ export class PLayer extends Component {
         this.collider2D.off(Contact2DType.BEGIN_CONTACT, this.beginContact, false)
         this.collider2D.off(Contact2DType.END_CONTACT, this.endContact, false)
         // 监听挂点的碰撞事件
-        this.socketNodes.forEach(node => {
-            node.getComponent(CircleCollider2D).off(Contact2DType.BEGIN_CONTACT, this.socketNodesBeginContact)
-        })
+        // this.socketNodes.forEach(node => {
+        //     node.getComponent(CircleCollider2D).off(Contact2DType.BEGIN_CONTACT, this.socketNodesBeginContact)
+        // })
     }
 
     /**
@@ -116,6 +116,9 @@ export class PLayer extends Component {
      * @param e 
      */
     handUp = (e: EventKeyboard) => {
+        if([KeyCode.ARROW_LEFT,KeyCode.ARROW_RIGHT,KeyCode].includes(e.keyCode)){
+            this.fsm.onInput(InputType.KEY_UP,[])
+        }
     }
     /**
      * 挂点碰撞检测

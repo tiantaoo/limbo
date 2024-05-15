@@ -6,9 +6,13 @@ import { InputType, PlaterState } from "./interface";
 export default class JumpState extends BaseState {
     state: PlaterState = PlaterState.jump
     protected onStateEntry(preState: PlaterState): void {
+        console.log('进入跳')
         if ([PlaterState.wait, PlaterState.walk].includes(preState)) {
-            this.fadeIn('jump1', 0.3, 1)
             this.moveY()
+            const jump = this.fadeIn('jump1', 0.3, 1)
+            if(jump){
+                jump.timeScale = 1.3
+            }
         }
     }
     protected onAccept(data: { type?: InputType; nodes?: Node[]; }): void {
@@ -33,6 +37,6 @@ export default class JumpState extends BaseState {
         this.toWait()
     }
     public onStateExit(): void {
-        this.rig2D.enabled = true
+        console.log('退出跳')
     }
 }

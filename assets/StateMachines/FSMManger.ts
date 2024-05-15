@@ -35,6 +35,13 @@ export default class FSMManger {
     }
     // 监听输入
     onInput(type: InputType,nodes:Node[]) {
+        // 游戏结束事件，取消动画监听，停止正在播放的动画
+        if(type === InputType.GAME_OVER){
+            this.destroy()
+            this.armatureDisplay.armature().animation.stop()
+            this.currentState = PlaterState.hurt
+            return
+        }
         // 当前状态接收输入事件
         this.stateList[this.currentState].accept({
             type,
