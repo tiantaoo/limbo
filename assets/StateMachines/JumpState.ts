@@ -1,4 +1,4 @@
-import { Node, v2 } from "cc";
+import { Node, ParticleSystem2D, v2 } from "cc";
 import BaseState from "./BaseState";
 import { InputType, PlaterState } from "./interface";
 
@@ -6,7 +6,6 @@ import { InputType, PlaterState } from "./interface";
 export default class JumpState extends BaseState {
     state: PlaterState = PlaterState.jump
     protected onStateEntry(preState: PlaterState): void {
-        console.log('进入跳')
         if ([PlaterState.wait, PlaterState.walk].includes(preState)) {
             this.moveY()
             const jump = this.fadeIn('jump1', 0.3, 1)
@@ -14,6 +13,7 @@ export default class JumpState extends BaseState {
                 jump.timeScale = 1.3
             }
         }
+        this.node.once('player_floor',this.onFloor,this)
     }
     protected onAccept(data: { type?: InputType; nodes?: Node[]; }): void {
         switch (data.type) {
@@ -38,5 +38,9 @@ export default class JumpState extends BaseState {
     }
     public onStateExit(): void {
         console.log('退出跳')
+    }
+    private onFloor(){
+        console.log('粒子')
+        this.ppp.getComponent(ParticleSystem2D).resetSystem()
     }
 }

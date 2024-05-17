@@ -1,5 +1,4 @@
-import { BoxCollider2D, Node } from "cc"
-import { PLayer } from "../Scripts/Player"
+import { Node } from "cc"
 import BaseState from "./BaseState"
 import { InputType, PlaterState } from "./interface"
 
@@ -14,8 +13,6 @@ export default class waitState extends BaseState {
         }
     }
     protected onAccept(data: { type?: InputType; nodes?: Node[]; }): void {
-        const scale = this.node.getComponent(PLayer).scale
-        const collider2D = this.node.getComponent(BoxCollider2D)
         switch (data.type) {
             case InputType.LEFT:
             case InputType.RIGHT:

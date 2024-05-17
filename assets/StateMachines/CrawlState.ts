@@ -1,4 +1,4 @@
-import { Camera, ERigidBody2DType, UITransform, Vec3, director, tween, v2, v3 } from "cc"
+import { Camera, ERigidBody2DType, UITransform, Vec3, tween, v2, v3 } from "cc"
 import { PLayer } from "../Scripts/Player"
 import BaseState from "./BaseState"
 import { PlaterState } from "./interface"
@@ -8,7 +8,6 @@ export default class CrawlState extends BaseState {
     state: PlaterState = PlaterState.crawl
     cameta:Camera
     protected onStateEntry(preState: PlaterState): void {
-        director.emit('update_fov',{fov:40})
         this.fadeIn('crawl', 0.3, 1)
         this.cameta = this.node.parent.getChildByName('Camera').getComponent(Camera)
         console.log( this.cameta.node.position.y)
@@ -43,7 +42,6 @@ export default class CrawlState extends BaseState {
         }).start()
     }
     protected onStateExit(): void {
-        director.emit('update_fov',{fov:64.25})
         console.log( this.cameta.node.position.y)
     }
 }

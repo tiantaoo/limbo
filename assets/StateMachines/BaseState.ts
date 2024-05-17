@@ -21,6 +21,7 @@ export default class BaseState {
     inputType: InputType
     fsm: FSMManger
     playerCtrl: PLayer
+    ppp:Node
 
     constructor(node: Node, fsm: FSMManger) {
         this.node = node;
@@ -28,6 +29,7 @@ export default class BaseState {
         this.animation = this.armatureDisplay.armature().animation
         this.fsm = fsm
         this.playerCtrl = this.node.getComponent(PLayer)
+        this.ppp = this.node.getChildByName('PPP')
     }
     get nearNodes() {
         return this.playerCtrl.nearNodes
@@ -123,6 +125,7 @@ export default class BaseState {
         // 横向力，方向*力
         const dir = flag ? flag : type === InputType.LEFT ? -1 : type === InputType.RIGHT ? 1 : 0
         let XF: number = dir * this.playerCtrl.wakeV;
+        // this.rig2D.applyForceToCenter(v2(XF,0),true)
         this.rig2D.linearVelocity = v2(XF, this.rig2D.linearVelocity.y)
     }
     /**

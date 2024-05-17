@@ -1,61 +1,61 @@
-import { Camera, CameraComponent, Component, Node, SpriteFrame, Vec3, _decorator, director, math, v3 } from 'cc';
+import { Camera, CameraComponent, Component, Node, Vec3, _decorator, director, v3 } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('CameraCtrl')
 export class CameraCtrl extends Component {
+    // 玩家角色
     @property({ type: Node })
     player: Node;
-
+    // 相机节点
     @property({ type: Camera })
     camera: Camera;
-
-    // 摄像机可见尺寸
-    cameraSize: math.Size;
-    // 地图尺寸
-    mapSize: math.Size;
-
+    // 相机的最后位置
     lastCameraPos: Vec3
-    scoreNode: Node;
-
-    @property({ type: SpriteFrame })
-    spriteFrame: SpriteFrame;
-
     lastFov:number
     newFov:number
     lastY:number
     newY:number
-    
     onLoad() {
         const Ca = this.camera.getComponent(CameraComponent)
         this.lastCameraPos = this.node.getPosition()
         this.lastFov = this.newFov = Ca.fov
         this.lastY = this.newY = 0
+        
+        director.on('update_camera', this.setCameraParam)
         director.once('hurt', () => {
             director.loadScene('Level1')
         })
-        director.on('update_fov', (data:{fov:number,y:number}) => {
-            this.newFov = data.fov
-            // 根据比例计算摄像机Y轴的位移，x轴一直跟着主角走的，不用管
-            this.newY = (data.fov - 64.25) * (360/64.25)
-        })
+    }
+    protected start(): void {
+        this.setCameraParam({fov:30,posY:-200})
     }
     update(deltaTime: number) {
         const { x, y } = this.player.position;
         // 相机缓慢跟随主角移动
         const x1 = this.lastCameraPos.x + (x - this.lastCameraPos.x) * deltaTime * 2
-        this.updateCamera(v3(x1, y));
+        const y1 = this.lastCameraPos.y + (y - this.lastCameraPos.y) * deltaTime
+        this.updateCamera(v3(x1, y1));
         if(this.newY > this.lastY){
             this.addY(deltaTime)
-        }
-        if(this.newY < this.lastY){
+        }else if(this.newY < this.lastY){
             this.subY(deltaTime)
-        }  
+        }
         if(this.newFov > this.lastFov){
             this.addFov(deltaTime)
-        }
-        if(this.newFov < this.lastFov){
+        } else if(this.newFov < this.lastFov){
             this.subFov(deltaTime)
-        }    
+        }  
+    }
+    /**
+     * 设置相机参数
+     * @param data 
+     */
+    setCameraParam(data:{fov:number,posY?:number}){
+        const {fov,posY} = data;
+        this.newFov = fov
+        // 根据比例计算摄像机Y轴的位移，x轴一直跟着主角走的，不用管
+        this.newY = posY || (fov - 64.25) * (360/64.25)
+        console.log('设置相机',this.newFov,this.newY)
     }
     updateCamera(pos: Vec3) {
         this.lastCameraPos = pos
@@ -68,6 +68,7 @@ export class CameraCtrl extends Component {
         this.camera.fov = this.camera.fov + (this.newFov - this.lastFov)* deltaTime
         if(this.camera.fov>this.newFov){
             this.lastFov = this.newFov
+            console.log('fov坐标同步',this.camera.fov)
         }
     }
     subFov(deltaTime){
@@ -82,7 +83,7 @@ export class CameraCtrl extends Component {
         this.camera.node.setPosition(x, y1)
         if(y1 > this.newY){
             this.lastY = this.newY
-            console.log('同步1',y1,this.newY)
+            console.log('Y坐标同步',this.lastY)
         }
     }
     subY(deltaTime){
@@ -91,7 +92,7 @@ export class CameraCtrl extends Component {
         this.camera.node.setPosition(x, y1)
         if(y1 < this.newY){
             this.lastY = this.newY
-            console.log('同步2',y1,this.newY)
+
         }
     }
 }

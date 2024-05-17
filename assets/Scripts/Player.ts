@@ -37,9 +37,9 @@ export class PLayer extends Component {
     // 最大推力
     maxPushF: number = 1600;
     // 行走速度
-    wakeV: number = 3
+    wakeV: number = 5
     // 跳跃力
-    jumpF: number = 20;
+    jumpF: number = 24;
     // 角色缩放
     scale: number = 0.1
     // 角色正在靠近的需要处理的节点
@@ -73,7 +73,6 @@ export class PLayer extends Component {
     }
     start() {
         this.fsm.entry(PlaterState.wait)
-        console.log(this.rig2D.getMass())
     }
     /**
      * 创建碰撞监听
@@ -109,15 +108,15 @@ export class PLayer extends Component {
      * @param e 
      */
     handPress = (e: EventKeyboard) => {
-        this.fsm.onInput(e.keyCode as unknown as InputType,[])
+        this.fsm.onInput(e.keyCode as unknown as InputType, [])
     }
     /**
      * 松开
      * @param e 
      */
     handUp = (e: EventKeyboard) => {
-        if([KeyCode.ARROW_LEFT,KeyCode.ARROW_RIGHT,KeyCode].includes(e.keyCode)){
-            this.fsm.onInput(InputType.KEY_UP,[])
+        if ([KeyCode.ARROW_LEFT, KeyCode.ARROW_RIGHT, KeyCode].includes(e.keyCode)) {
+            this.fsm.onInput(InputType.KEY_UP, [])
         }
     }
     /**
@@ -134,7 +133,7 @@ export class PLayer extends Component {
             const dis = pos.y - _pos.y
             const nodeP = this.node.getPosition()
             this.node.setPosition(v3(nodeP.x, nodeP.y + dis))
-            this.fsm.onInput(InputType.CRAWL,[other.node])
+            this.fsm.onInput(InputType.CRAWL, [other.node])
         }
     }
     /**
@@ -162,7 +161,7 @@ export class PLayer extends Component {
                 // 角色链接节点没有绑定绳子时、可以绑定
                 if (!haveHands) {
                     console.log('允许链接')
-                    this.fsm.onInput(InputType.CORD,[other.node])
+                    this.fsm.onInput(InputType.CORD, [other.node])
                 }
                 break;
             // 碰到地刺    
@@ -183,6 +182,9 @@ export class PLayer extends Component {
                 }
                 break;
             default:
+                if(other.tag === 100){
+                    this.node.emit('player_floor')
+                }
                 break;
         }
     }
@@ -194,7 +196,7 @@ export class PLayer extends Component {
     endContact = (self: Collider2D, other: Collider2D) => {
         // 离开石头
         if (other.node.name === 'Ston1') {
-            this.fsm.onInput(InputType.EXIT,[])
+            this.fsm.onInput(InputType.EXIT, [])
         } else if (other.node.name === 'Ju') {
             if (other.tag === 0) {
                 this.nearNodes = this.nearNodes.filter(item => item.name !== 'Ju')
@@ -214,10 +216,10 @@ export class PLayer extends Component {
         const minDist = (this.node.getComponent(BoxCollider2D).size.width * this.node.scale.x) / 2 + targrt.getComponent(CircleCollider2D).radius
         // 两节点在x轴的距离大于等于两节点的宽度，才执行 推
         if (dist >= minDist) {
-            this.fsm.onInput(InputType.PUSH,[targrt])
+            this.fsm.onInput(InputType.PUSH, [targrt])
         }
     }
-    
+
     // 初始化角色碰撞盒
     initCollider = () => {
         for (let key in PhysicBodyName) {
@@ -363,7 +365,7 @@ export class PLayer extends Component {
 
     die = () => {
         console.log('死亡')
-        this.fsm.onInput(InputType.GAME_OVER,[])
+        this.fsm.onInput(InputType.GAME_OVER, [])
         this.node.removeChild(this.jointNode)
         this.scheduleOnce(() => {
             this.createAllJoint()

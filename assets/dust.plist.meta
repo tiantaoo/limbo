@@ -9,26 +9,26 @@
   ],
   "subMetas": {},
   "userData": {
-    "totalParticles": 100,
-    "life": 5,
-    "lifeVar": 2,
-    "emissionRate": 20,
-    "duration": -1,
+    "totalParticles": 5,
+    "life": 1,
+    "lifeVar": 0,
+    "emissionRate": 100,
+    "duration": 0.8,
     "srcBlendFactor": 2,
     "dstBlendFactor": 1,
     "startColor": {
       "_val": 2734686208,
-      "r": 0,
-      "g": 0,
-      "b": 0,
-      "a": 163
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
     },
     "startColorVar": {
       "_val": 0,
       "r": 0,
       "g": 0,
       "b": 0,
-      "a": 0
+      "a": 255
     },
     "endColor": {
       "_val": 3590324224,
@@ -42,23 +42,23 @@
       "r": 0,
       "g": 0,
       "b": 0,
-      "a": 0
+      "a": 255
     },
-    "startSize": 1,
-    "startSizeVar": 3,
-    "endSize": 5,
-    "endSizeVar": 0,
-    "positionType": 1,
+    "startSize": 6,
+    "startSizeVar": 2,
+    "endSize": 3,
+    "endSizeVar": 1,
+    "positionType": 2,
     "sourcePos": {
       "x": 0,
       "y": 0
     },
     "posVar": {
       "x": 2,
-      "y": 2
+      "y": 5
     },
-    "angle": 120,
-    "angleVar": 20,
+    "angle": 90,
+    "angleVar": 30,
     "startSpin": 0,
     "startSpinVar": 0,
     "endSpin": 0,
@@ -68,11 +68,11 @@
       "x": 0,
       "y": -100
     },
-    "speed": 30,
-    "speedVar": 50,
+    "speed": 50,
+    "speedVar": 10,
     "radialAccel": 0,
     "radialAccelVar": 0,
-    "tangentialAccel": 0,
+    "tangentialAccel": 10,
     "tangentialAccelVar": 0,
     "rotationIsDir": false,
     "startRadius": 0,
@@ -81,6 +81,6 @@
     "endRadiusVar": 0,
     "rotatePerS": 0,
     "rotatePerSVar": 0,
-    "spriteFrameUuid": "24c419ea-63a8-4ea1-a9d0-7fc469489bbc@f9941"
+    "spriteFrameUuid": "ea7c4ec4-e331-4e26-87a3-136ee1cbc23a@f9941"
   }
 }

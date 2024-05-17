@@ -14,7 +14,7 @@ export default class CordState extends BaseState {
      * @param preState 
      */
     protected onStateEntry(preState: PlaterState): void {
-        director.emit('update_fov',{fov:50})
+        director.emit('update_camera',{fov:50})
         // 得到触发拉绳动作的上一个状态接触的节点
         this.relevancyNodes = this.fsm.stateList[preState].relevancyNodes
         if (this.relevancyNodes.length !== 0) {
@@ -112,6 +112,6 @@ export default class CordState extends BaseState {
         }
     }
     protected onStateExit(): void {
-        director.emit('update_fov',{fov:64.25})
+        director.emit('update_camera',{fov:64.25})
     }
 }
